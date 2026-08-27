@@ -16,10 +16,13 @@ app.use(cors());
 app.use(express.json());
 
 // Health Check Endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'Letterbox API', timestamp: new Date() });
-});
 
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the Letterbox Financial Literacy API!',
+    healthCheck: 'http://localhost:5000/api/health'
+  });
+});
 // Mounted Application Routes
 app.use('/api/auth', authRoutes);       // Authentication (Register/Login)
 app.use('/api/games', gameRoutes);     // Player Game Logic, Questions & Submissions
