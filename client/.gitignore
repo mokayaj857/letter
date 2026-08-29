@@ -1,0 +1,13 @@
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+pubspec.lock
+
+# IDE files
+.idea/
+*.iml
+
+# Flutter generated platform folders can be created with:
+# flutter create .
