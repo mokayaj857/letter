@@ -49,31 +49,25 @@ function Leaderboard() {
         </p>
 
         <div className="mt-6 flex items-end justify-center gap-3">
-          {podium.map((kid, i) => {
-            const heights = ["h-24", "h-32", "h-20"];
-            const places = [2, 1, 3];
-            return (
-              <div key={kid.name} className="flex w-24 flex-col items-center">
-                {places[i] === 1 && (
-                  <Crown className="mb-1 size-6 text-sun" strokeWidth={2.4} />
-                )}
-                <div className="grid size-14 place-items-center rounded-full border-4 border-card bg-card text-2xl shadow-card">
-                  {kid.avatar}
-                </div>
-                <p className="mt-1 truncate font-display text-sm font-bold">
-                  {kid.name}
-                </p>
-                <div
-                  className={`mt-1 flex w-full ${heights[i]} flex-col items-center justify-center rounded-t-3xl border-2 border-b-0 border-border ${podiumTone[places[i] - 1]}`}
-                >
-                  <span className="font-display text-2xl font-bold">
-                    {places[i]}
-                  </span>
-                  <span className="text-xs font-bold">{kid.coins} 🪙</span>
-                </div>
+          {podium.map(({ kid, place, height, tone }) => (
+            <div key={kid.name} className="flex w-24 flex-col items-center">
+              {place === 1 && (
+                <Crown className="mb-1 size-6 text-sun" strokeWidth={2.4} />
+              )}
+              <div className="grid size-14 place-items-center rounded-full border-4 border-card bg-card text-2xl shadow-card">
+                {kid.avatar}
               </div>
-            );
-          })}
+              <p className="mt-1 truncate font-display text-sm font-bold">
+                {kid.name}
+              </p>
+              <div
+                className={`mt-1 flex w-full ${height} flex-col items-center justify-center rounded-t-3xl border-2 border-b-0 border-border ${tone}`}
+              >
+                <span className="font-display text-2xl font-bold">{place}</span>
+                <span className="text-xs font-bold">{kid.coins} 🪙</span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <ul className="mt-6 space-y-3">
