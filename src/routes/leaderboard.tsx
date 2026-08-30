@@ -22,21 +22,28 @@ export const Route = createFileRoute("/leaderboard")({
   component: Leaderboard,
 });
 
-const kids = [
+type Kid = { name: string; avatar: string; coins: number; me?: boolean };
+
+const top: Kid[] = [
   { name: "Zawadi", avatar: "🐨", coins: 480 },
   { name: "Amani", avatar: "🦁", coins: 420, me: true },
   { name: "Neema", avatar: "🐰", coins: 390 },
+];
+
+const rest: Kid[] = [
   { name: "Juma", avatar: "🐵", coins: 310 },
   { name: "Sifa", avatar: "🦊", coins: 280 },
   { name: "Baraka", avatar: "🐼", coins: 240 },
   { name: "Imani", avatar: "🐧", coins: 190 },
 ];
 
-const podiumTone = ["bg-sun", "bg-primary-soft", "bg-berry"];
+const podium = [
+  { kid: top[1]!, place: 2, height: "h-24", tone: "bg-primary-soft" },
+  { kid: top[0]!, place: 1, height: "h-32", tone: "bg-sun" },
+  { kid: top[2]!, place: 3, height: "h-20", tone: "bg-berry" },
+];
 
 function Leaderboard() {
-  const [first, second, third, ...rest] = kids;
-  const podium = [second, first, third];
 
   return (
     <>
