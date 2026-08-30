@@ -1012,4 +1012,4 @@ class _BottomNavBarState extends State<_BottomNavBar> {
       ),
     );
   }
-}R
+}
