@@ -80,19 +80,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { title: "Letterbox — Money Adventures for Kids" },
+      { title: "Letterbox — Money Games for Smart Kids" },
       {
         name: "description",
         content:
-          "Letterbox teaches kids aged 5-7 to save, spend and share through a playful coin-collecting adventure.",
+          "Letterbox turns financial literacy into a game for kids aged 10+: quests, XP, streaks and money simulations.",
       },
       { name: "author", content: "Letterbox" },
       { name: "theme-color", content: "#f7f4e8" },
-      { property: "og:title", content: "Letterbox — Money Adventures for Kids" },
+      { property: "og:title", content: "Letterbox — Money Games for Smart Kids" },
       {
         property: "og:description",
         content:
-          "A playful financial literacy adventure for little learners, in ivory and green.",
+          "Financial literacy built like your favourite game — quests, XP and leagues.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
