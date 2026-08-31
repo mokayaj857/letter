@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RewardsRouteImport } from './routes/rewards'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as JourneyGameIdRouteImport } from './routes/journey.$gameId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JourneyGameIdRoute = JourneyGameIdRouteImport.update({
+  id: '/journey/$gameId',
+  path: '/journey/$gameId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/rewards': typeof RewardsRoute
   '/signup': typeof SignupRoute
+  '/journey/$gameId': typeof JourneyGameIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/rewards': typeof RewardsRoute
   '/signup': typeof SignupRoute
+  '/journey/$gameId': typeof JourneyGameIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/rewards': typeof RewardsRoute
   '/signup': typeof SignupRoute
+  '/journey/$gameId': typeof JourneyGameIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/leaderboard' | '/login' | '/profile' | '/rewards' | '/signup'
+    | '/'
+    | '/leaderboard'
+    | '/login'
+    | '/profile'
+    | '/rewards'
+    | '/signup'
+    | '/journey/$gameId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/leaderboard' | '/login' | '/profile' | '/rewards' | '/signup'
+  to:
+    | '/'
+    | '/leaderboard'
+    | '/login'
+    | '/profile'
+    | '/rewards'
+    | '/signup'
+    | '/journey/$gameId'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rewards'
     | '/signup'
+    | '/journey/$gameId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RewardsRoute: typeof RewardsRoute
   SignupRoute: typeof SignupRoute
+  JourneyGameIdRoute: typeof JourneyGameIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/journey/$gameId': {
+      id: '/journey/$gameId'
+      path: '/journey/$gameId'
+      fullPath: '/journey/$gameId'
+      preLoaderRoute: typeof JourneyGameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RewardsRoute: RewardsRoute,
   SignupRoute: SignupRoute,
+  JourneyGameIdRoute: JourneyGameIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

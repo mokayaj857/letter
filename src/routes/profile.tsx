@@ -10,7 +10,7 @@ export const Route = createFileRoute("/profile")({
       {
         name: "description",
         content:
-          "Amani's Letterbox profile: avatar, coins, streak, badges and grown-up settings.",
+          "Your Letterbox profile: avatar, coins, XP, streak and badges.",
       },
       { property: "og:title", content: "My Profile — Letterbox" },
       {
@@ -41,13 +41,13 @@ function Profile() {
           </div>
           <h1 className="mt-3 text-2xl font-bold text-primary-foreground">Amani</h1>
           <p className="text-sm font-semibold text-primary-foreground/85">
-            Level 4 · Little Saver
+            Level 12 · Budget Boss
           </p>
           <div className="mt-4 grid grid-cols-3 gap-2">
             {[
-              ["240", "coins"],
-              ["5", "day streak"],
-              ["4", "badges"],
+              ["1,240", "coins"],
+              ["12", "day streak"],
+              ["3,860", "XP"],
             ].map(([v, l]) => (
               <div key={l} className="rounded-2xl bg-card/90 py-2">
                 <p className="font-display text-lg font-bold text-primary-deep">{v}</p>
@@ -58,7 +58,7 @@ function Profile() {
         </div>
 
         <h2 className="mt-7 font-display text-xl font-bold text-primary-deep">
-          Pick your buddy
+          Pick your avatar
         </h2>
         <div className="mt-3 grid grid-cols-4 gap-3">
           {avatars.map((a, i) => (
