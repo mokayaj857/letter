@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:letterbox/views/splash/splash_screen.dart';
 
 void main() => runApp(const MyApp());
 
@@ -8,10 +9,49 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = ThemeData(
+      fontFamily: 'Poppins',
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF1B5E20),
+        primary: const Color(0xFF1B5E20),
+        secondary: const Color(0xFFFF6D00),
+        surface: Colors.white,
+      ),
+    );
     return MaterialApp(
+      title: 'Letter Box',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Poppins', useMaterial3: true),
-      home: const ProfileScreen(),
+      theme: base.copyWith(
+        textTheme: base.textTheme.apply(
+          fontFamily: 'Poppins',
+          bodyColor: const Color(0xFF1F2937),
+          displayColor: const Color(0xFF1B5E20),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFFF9FAFB),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 1.8),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFF6D00),
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ),
+      home: const SplashScreen(),
     );
   }
 }
