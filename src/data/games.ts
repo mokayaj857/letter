@@ -1,3 +1,5 @@
+import { gameArt } from "@/assets/icons";
+
 export type Level = {
   title: string;
   kind: "lesson" | "quiz" | "sim" | "boss";
@@ -9,7 +11,7 @@ export type Game = {
   id: string;
   title: string;
   blurb: string;
-  emoji: string;
+  art: string;
   tint: string;
   locked?: boolean;
   unlockXp?: number;
@@ -30,7 +32,7 @@ export const games: Game[] = [
     id: "money-basics",
     title: "Money Basics",
     blurb: "Where money comes from, value and fair trade.",
-    emoji: "🪙",
+    art: gameArt["money-basics"],
     tint: "bg-sun",
     done: 5,
     levels: path(
@@ -50,7 +52,7 @@ export const games: Game[] = [
     id: "budget-boss",
     title: "Budget Boss",
     blurb: "Plan a monthly budget and survive surprise costs.",
-    emoji: "📊",
+    art: gameArt["budget-boss"],
     tint: "bg-primary-soft",
     done: 2,
     levels: path(
@@ -69,7 +71,7 @@ export const games: Game[] = [
     id: "save-invest",
     title: "Save & Grow",
     blurb: "Goals, interest and the magic of compounding.",
-    emoji: "🌱",
+    art: gameArt["save-invest"],
     tint: "bg-sky",
     done: 1,
     levels: path(
@@ -87,7 +89,7 @@ export const games: Game[] = [
     id: "smart-spender",
     title: "Smart Spender",
     blurb: "Spot ads, compare deals and dodge impulse buys.",
-    emoji: "🛒",
+    art: gameArt["smart-spender"],
     tint: "bg-berry",
     done: 0,
     levels: path(
@@ -105,7 +107,7 @@ export const games: Game[] = [
     id: "digital-money",
     title: "Digital Money",
     blurb: "Mobile money, safety and scam-spotting.",
-    emoji: "📱",
+    art: gameArt["digital-money"],
     tint: "bg-sky",
     locked: true,
     unlockXp: 4200,
@@ -124,7 +126,7 @@ export const games: Game[] = [
     id: "young-hustler",
     title: "Young Hustler",
     blurb: "Start a mini business, price it and make profit.",
-    emoji: "🚀",
+    art: gameArt["young-hustler"],
     tint: "bg-sun",
     locked: true,
     unlockXp: 5000,

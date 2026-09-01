@@ -64,8 +64,15 @@ function Journey() {
               {game.title}
             </h1>
           </div>
-          <span className={`grid size-11 place-items-center rounded-2xl text-xl ${game.tint}`}>
-            {game.emoji}
+          <span className={`grid size-12 place-items-center rounded-2xl ${game.tint}`}>
+            <img
+              src={game.art}
+              alt=""
+              aria-hidden
+              width={384}
+              height={384}
+              className="size-9 animate-float-soft object-contain"
+            />
           </span>
         </header>
 
