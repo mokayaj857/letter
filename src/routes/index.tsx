@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Coins, Flame, Zap, ChevronRight, Lock, Play } from "lucide-react";
+import { Flame, Zap, ChevronRight, Lock, Play } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
+import { Coin } from "@/components/Coin";
 import mascot from "@/assets/mascot.png";
+import { avatars, icons } from "@/assets/icons";
 import { games } from "@/data/games";
 
 export const Route = createFileRoute("/")({
@@ -20,6 +22,8 @@ export const Route = createFileRoute("/")({
         content:
           "Pick a money quest, unlock levels, earn XP and coins. Financial literacy built like your favourite game.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: GamesHub,
@@ -29,7 +33,7 @@ function GamesHub() {
   return (
     <>
       <Screen>
-        <header className="flex items-center justify-between">
+        <header className="flex animate-slide-up items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-muted-foreground">
               Welcome back, Amani
@@ -38,19 +42,47 @@ function GamesHub() {
           </div>
           <Link
             to="/profile"
-            className="grid size-14 place-items-center rounded-2xl border-2 border-border bg-primary-soft text-2xl shadow-card"
+            aria-label="Open profile"
+            className="lift grid size-14 place-items-center overflow-hidden rounded-2xl border-2 border-border bg-primary-soft shadow-card hover:-translate-y-0.5 active:scale-95"
           >
-            🦁
+            <img
+              src={avatars.lion}
+              alt="Your lion avatar"
+              width={384}
+              height={384}
+              className="size-11 object-contain"
+            />
           </Link>
         </header>
 
         <div className="mt-4 flex gap-2">
-          <Stat icon={<Coins className="size-4" />} label="1,240" sub="coins" tint="bg-sun" />
-          <Stat icon={<Flame className="size-4" />} label="12" sub="day streak" tint="bg-berry" />
-          <Stat icon={<Zap className="size-4" />} label="3,860" sub="XP" tint="bg-sky" />
+          <Stat
+            icon={<Coin className="size-5" />}
+            label="1,240"
+            sub="coins"
+            tint="bg-sun"
+            delay={60}
+          />
+          <Stat
+            icon={<Flame className="size-4" />}
+            label="12"
+            sub="day streak"
+            tint="bg-berry"
+            delay={120}
+          />
+          <Stat
+            icon={<Zap className="size-4" />}
+            label="3,860"
+            sub="XP"
+            tint="bg-sky"
+            delay={180}
+          />
         </div>
 
-        <section className="mt-5 overflow-hidden rounded-3xl border-2 border-border bg-leaf p-5 shadow-card">
+        <section
+          className="mt-5 animate-slide-up overflow-hidden rounded-3xl border-2 border-border bg-leaf p-5 shadow-card"
+          style={{ animationDelay: "220ms" }}
+        >
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <p className="text-xs font-bold uppercase tracking-widest text-primary-foreground/75">
@@ -65,7 +97,7 @@ function GamesHub() {
               <Link
                 to="/journey/$gameId"
                 params={{ gameId: "budget-boss" }}
-                className="mt-3 inline-block rounded-2xl bg-card px-5 py-2 font-display text-sm font-bold text-primary-deep shadow-pop active:translate-y-1 active:shadow-none"
+                className="press mt-3 inline-block rounded-2xl bg-card px-5 py-2 font-display text-sm font-bold text-primary-deep shadow-pop hover:-translate-y-0.5 active:translate-y-1 active:shadow-none"
               >
                 Start challenge
               </Link>
@@ -91,16 +123,31 @@ function GamesHub() {
           {games.map((game, i) => {
             const card = (
               <div
-                className={`flex h-full flex-col rounded-3xl border-2 border-border p-4 shadow-card transition-transform ${
-                  game.locked ? "bg-muted/60" : "bg-card active:scale-[0.97]"
+                className={`lift flex h-full flex-col rounded-3xl border-2 border-border p-4 shadow-card ${
+                  game.locked
+                    ? "bg-muted/60"
+                    : "bg-card hover:-translate-y-1 hover:shadow-float active:scale-[0.97]"
                 }`}
               >
                 <span
-                  className={`grid size-12 place-items-center rounded-2xl text-2xl ${
+                  className={`grid size-14 place-items-center rounded-2xl ${
                     game.locked ? "bg-muted text-muted-foreground" : game.tint
                   }`}
                 >
-                  {game.locked ? <Lock className="size-5" /> : game.emoji}
+                  {game.locked ? (
+                    <Lock className="size-5" />
+                  ) : (
+                    <img
+                      src={game.art}
+                      alt=""
+                      aria-hidden
+                      loading="lazy"
+                      width={384}
+                      height={384}
+                      className="size-11 animate-float-soft object-contain"
+                      style={{ animationDelay: `${i * 240}ms` }}
+                    />
+                  )}
                 </span>
                 <p className="mt-3 font-display text-base font-bold leading-tight">
                   {game.title}
@@ -119,7 +166,7 @@ function GamesHub() {
                 {!game.locked && (
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full bg-primary"
+                      className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
                       style={{
                         width: `${(game.done / game.levels.length) * 100}%`,
                       }}
@@ -133,7 +180,7 @@ function GamesHub() {
               <li
                 key={game.id}
                 className="animate-pop-in"
-                style={{ animationDelay: `${i * 50}ms` }}
+                style={{ animationDelay: `${260 + i * 60}ms` }}
               >
                 {game.locked ? (
                   card
@@ -149,10 +196,18 @@ function GamesHub() {
 
         <Link
           to="/leaderboard"
-          className="mt-6 flex items-center gap-3 rounded-3xl border-2 border-border bg-card px-4 py-3 shadow-card"
+          className="lift mt-6 flex items-center gap-3 rounded-3xl border-2 border-border bg-card px-4 py-3 shadow-card hover:-translate-y-0.5 hover:shadow-float"
         >
-          <span className="grid size-10 place-items-center rounded-2xl bg-sun text-lg">
-            🏆
+          <span className="grid size-11 place-items-center rounded-2xl bg-sun">
+            <img
+              src={icons.trophy}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              width={384}
+              height={384}
+              className="size-8 animate-float-soft object-contain"
+            />
           </span>
           <span className="flex-1 font-display font-bold">
             You&apos;re #2 in the weekly league
@@ -170,14 +225,19 @@ function Stat({
   label,
   sub,
   tint,
+  delay,
 }: {
   icon: React.ReactNode;
   label: string;
   sub: string;
   tint: string;
+  delay: number;
 }) {
   return (
-    <div className="flex flex-1 items-center gap-2 rounded-2xl border-2 border-border bg-card px-2 py-2 shadow-card">
+    <div
+      className="flex flex-1 animate-slide-up items-center gap-2 rounded-2xl border-2 border-border bg-card px-2 py-2 shadow-card"
+      style={{ animationDelay: `${delay}ms` }}
+    >
       <span className={`grid size-7 shrink-0 place-items-center rounded-xl ${tint}`}>
         {icon}
       </span>
