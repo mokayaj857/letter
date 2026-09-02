@@ -1,37 +1,28 @@
-# Letterbox Adventures
+# Letterbox — Kids Money Adventure
 
-im building an ap for finacl literacy meant for kid .. using flutter .. create for me the app taking this as a motivation 
-https://app.m-lugha.com/login
+Letterbox turns financial literacy into an interactive, gamified journey for kids aged 10+. Choose a quest, climb the learning path, collect coins, earn XP, and become money-smart!
 
-my app is calld letterbox 
+## Features
 
+- **Interactive Quests**: Bite-sized lessons, quizzes, budgeting simulations, and boss battles.
+- **Custom Player Cards**: Pick your animal hero avatar, customize your title, and track progress.
+- **Star Board**: Weekly and monthly leagues celebrating top coin collectors and savers.
+- **Savings Vault & Rewards**: Set personal savings goals (e.g. new football boots), deposit coins, and unlock badges.
+- **Kid-Safe Parent Zone**: Parent verification gate for screen time controls, weekly allowance tracking, and progress reports.
+- **Flexible Sign-In**: Quick sign-in with Google, Apple, Phone SMS, or a 3-character Picture Code.
 
+## Technology Stack
 
-also take this as a motivation 
-https://karibuplay.online/
-
-
-my colour code combiantion should be ivory and green accents .. be creative because the app is meant kids .. so adapt it to kids being real and very creative and appealing 
-
-use flutter language
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8e02c99d-630a-4a1d-a4e3-be7320aa0e58).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- **Framework**: TanStack Start & React 19
+- **Styling**: Tailwind CSS with custom Letterbox theme (Ivory canvas, Forest Green, Sun Gold, Berry Red)
+- **Typography**: Fredoka & Baloo 2
+- **Audio & Visuals**: Synthesized Web Audio API sound effects and particle celebration animations
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+npm install
 npm run dev
 ```
+
+Visit `http://localhost:3000` to play!
