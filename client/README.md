@@ -1,17 +1,28 @@
-# letterbox
+# Letterbox — Kids Money Adventure
 
-A new Flutter project.
+Letterbox turns financial literacy into an interactive, gamified journey for kids aged 10+. Choose a quest, climb the learning path, collect coins, earn XP, and become money-smart!
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- **Interactive Quests**: Bite-sized lessons, quizzes, budgeting simulations, and boss battles.
+- **Custom Player Cards**: Pick your animal hero avatar, customize your title, and track progress.
+- **Star Board**: Weekly and monthly leagues celebrating top coin collectors and savers.
+- **Savings Vault & Rewards**: Set personal savings goals (e.g. new football boots), deposit coins, and unlock badges.
+- **Kid-Safe Parent Zone**: Parent verification gate for screen time controls, weekly allowance tracking, and progress reports.
+- **Flexible Sign-In**: Quick sign-in with Google, Apple, Phone SMS, or a 3-character Picture Code.
 
-A few resources to get you started if this is your first Flutter project:
+## Technology Stack
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- **Framework**: TanStack Start & React 19
+- **Styling**: Tailwind CSS with custom Letterbox theme (Ivory canvas, Forest Green, Sun Gold, Berry Red)
+- **Typography**: Fredoka & Baloo 2
+- **Audio & Visuals**: Synthesized Web Audio API sound effects and particle celebration animations
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Development
+
+```sh
+npm install
+npm run dev
+```
+
+Visit `http://localhost:3000` to play!
