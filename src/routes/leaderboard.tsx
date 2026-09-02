@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
 import { Coin } from "@/components/Coin";
 import { avatars, type AvatarKey } from "@/assets/icons";
+import { useUserStore } from "../lib/userStore";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
@@ -28,26 +29,34 @@ export const Route = createFileRoute("/leaderboard")({
 
 type Kid = { name: string; avatar: AvatarKey; coins: number; me?: boolean };
 
-const top: Kid[] = [
+const baseTop: Kid[] = [
   { name: "Zawadi", avatar: "koala", coins: 480 },
   { name: "Amani", avatar: "lion", coins: 420, me: true },
   { name: "Neema", avatar: "rabbit", coins: 390 },
 ];
 
-const rest: Kid[] = [
+const baseRest: Kid[] = [
   { name: "Juma", avatar: "monkey", coins: 310 },
   { name: "Sifa", avatar: "fox", coins: 280 },
   { name: "Baraka", avatar: "panda", coins: 240 },
   { name: "Imani", avatar: "penguin", coins: 190 },
 ];
 
-const podium = [
-  { kid: top[1]!, place: 2, height: "h-24", tone: "bg-primary-soft" },
-  { kid: top[0]!, place: 1, height: "h-32", tone: "bg-sun" },
-  { kid: top[2]!, place: 3, height: "h-20", tone: "bg-berry" },
-];
-
 function Leaderboard() {
+  const { user } = useUserStore();
+
+  const top: Kid[] = baseTop.map((k) =>
+    k.me
+      ? { ...k, name: user.name, avatar: user.avatar }
+      : k
+  );
+
+  const podium = [
+    { kid: top[1]!, place: 2, height: "h-24", tone: "bg-primary-soft" },
+    { kid: top[0]!, place: 1, height: "h-32", tone: "bg-sun" },
+    { kid: top[2]!, place: 3, height: "h-20", tone: "bg-berry" },
+  ];
+
   return (
     <>
       <Screen>
@@ -92,7 +101,7 @@ function Leaderboard() {
         </div>
 
         <ul className="mt-6 space-y-3">
-          {rest.map((kid, i) => (
+          {baseRest.map((kid, i) => (
             <li
               key={kid.name}
               className={`lift flex animate-slide-up items-center gap-3 rounded-3xl border-2 px-4 py-3 shadow-card hover:-translate-y-0.5 hover:shadow-float ${
