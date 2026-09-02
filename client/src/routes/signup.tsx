@@ -1,13 +1,21 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Phone, ArrowLeft, Sparkles, Check } from "lucide-react";
+import { Phone, ArrowLeft, Sparkles, Check, X } from "lucide-react";
 import { Screen } from "@/components/PhoneFrame";
 import { Field, GoogleIcon, AppleIcon } from "./login";
 import { avatarList, type AvatarKey } from "@/assets/icons";
 import { useUserStore } from "../lib/userStore";
 import { toast } from "sonner";
-import { playPop, playSuccess } from "../lib/audio";
+import { playPop, playSuccess, playError } from "../lib/audio";
 import { triggerConfetti } from "../lib/confetti";
+import {
+  authenticateWithGoogle,
+  authenticateWithApple,
+  authenticateWithEmail,
+  sendPhoneVerificationCode,
+} from "../lib/authService";
+import { getFirebaseErrorMessage } from "../lib/firebase";
+import type { ConfirmationResult } from "firebase/auth";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -37,10 +45,18 @@ function Signup() {
 
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarKey>("lion");
   const [selectedAge, setSelectedAge] = useState("11");
-  const [kidName, setKidName] = useState("Amani");
-  const [parentEmail, setParentEmail] = useState("parent@family.com");
-  const [secretCode, setSecretCode] = useState("••••••");
+  const [kidName, setKidName] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
+  const [secretCode, setSecretCode] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Phone Sign Up Modal State
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [phoneName, setPhoneName] = useState("");
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [phoneConfirmation, setPhoneConfirmation] = useState<ConfirmationResult | null>(null);
 
   const handleAvatarSelect = (key: AvatarKey) => {
     setSelectedAvatar(key);
@@ -52,35 +68,153 @@ function Signup() {
     playPop(settings.soundEnabled);
   };
 
-  const handleSocialSignup = (provider: string) => {
+  const handleSocialSignup = async (provider: string) => {
     playPop(settings.soundEnabled);
+    const provLower = provider.toLowerCase();
+
+    if (provLower === "phone") {
+      setPhoneName(kidName);
+      setShowPhoneModal(true);
+      return;
+    }
+
     toast.loading(`Creating account with ${provider}...`, { id: "social-signup" });
 
-    setTimeout(() => {
+    try {
+      const result =
+        provLower === "google"
+          ? await authenticateWithGoogle("signup", {
+              name: kidName.trim() || undefined,
+              age: selectedAge,
+              avatar: selectedAvatar,
+              email: parentEmail.trim() || undefined,
+            })
+          : await authenticateWithApple("signup", {
+              name: kidName.trim() || undefined,
+              age: selectedAge,
+              avatar: selectedAvatar,
+              email: parentEmail.trim() || undefined,
+            });
+
       toast.dismiss("social-signup");
-      signupUser(kidName || "Amani", selectedAge, selectedAvatar, `kid@${provider.toLowerCase()}.com`);
-      toast.success(`Welcome to Letterbox, ${kidName || "Amani"}!`);
-      triggerConfetti();
-      navigate({ to: "/" });
-    }, 500);
+      if (result.success) {
+        const finalName = result.name || kidName.trim() || "Player";
+        signupUser(
+          finalName,
+          selectedAge,
+          selectedAvatar,
+          result.email,
+          result.provider,
+          result.token
+        );
+        toast.success(`Welcome to Letterbox, ${finalName}!`);
+        triggerConfetti();
+        navigate({ to: "/" });
+      } else {
+        toast.error(`${provider} sign-up could not be completed.`);
+      }
+    } catch (err: any) {
+      toast.dismiss("social-signup");
+      toast.error(err?.message || `${provider} sign-up cancelled or failed.`);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePhoneSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpStep) {
+      if (!phone.trim()) {
+        toast.error("Please enter a mobile phone number (e.g. +254 712 345678)");
+        return;
+      }
+      playPop(settings.soundEnabled);
+      toast.loading("Sending SMS verification code...", { id: "phone-otp-signup" });
+      try {
+        const confirmation = await sendPhoneVerificationCode(phone.trim());
+        toast.dismiss("phone-otp-signup");
+        setPhoneConfirmation(confirmation);
+        setOtpStep(true);
+        setOtpCode("");
+        toast.success("SMS verification code sent to your phone!");
+      } catch (err: any) {
+        toast.dismiss("phone-otp-signup");
+        playError(settings.soundEnabled);
+        toast.error(err?.message || "Could not send SMS code. Please check your phone number.");
+      }
+    } else {
+      if (!otpCode || otpCode.trim().length < 6) {
+        playError(settings.soundEnabled);
+        toast.error("Please enter the 6-digit SMS verification code");
+        return;
+      }
+      toast.loading("Verifying SMS code and creating account...", { id: "phone-verify-signup" });
+      try {
+        if (!phoneConfirmation) {
+          throw new Error("Session expired. Please request a new SMS code.");
+        }
+        const userCredential = await phoneConfirmation.confirm(otpCode.trim());
+        toast.dismiss("phone-verify-signup");
+        const finalName = phoneName.trim() || kidName.trim() || userCredential.user.displayName || "Player";
+        playSuccess(settings.soundEnabled);
+        setShowPhoneModal(false);
+        signupUser(
+          finalName,
+          selectedAge,
+          selectedAvatar,
+          phone.trim(),
+          "phone"
+        );
+        toast.success(`Welcome to Letterbox, ${finalName}!`);
+        triggerConfetti();
+        navigate({ to: "/" });
+      } catch (err: any) {
+        toast.dismiss("phone-verify-signup");
+        playError(settings.soundEnabled);
+        toast.error(getFirebaseErrorMessage(err) || "Invalid verification code. Please check and try again.");
+      }
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!kidName.trim()) {
-      toast.error("Please enter a first name");
+      toast.error("Please enter your name");
+      return;
+    }
+    if (!parentEmail.trim()) {
+      toast.error("Please enter a parent/grown-up email");
+      return;
+    }
+    if (!secretCode || secretCode.length < 6) {
+      toast.error("Secret code must be at least 6 characters");
       return;
     }
     setLoading(true);
     playPop(settings.soundEnabled);
 
-    setTimeout(() => {
+    try {
+      const result = await authenticateWithEmail("signup", parentEmail.trim(), secretCode, {
+        name: kidName.trim(),
+        age: selectedAge,
+        avatar: selectedAvatar,
+      });
       setLoading(false);
-      signupUser(kidName.trim(), selectedAge, selectedAvatar, parentEmail);
-      toast.success(`Welcome to Letterbox, ${kidName}!`);
+      const finalName = result.name || kidName.trim();
+      signupUser(
+        finalName,
+        selectedAge,
+        selectedAvatar,
+        result.email,
+        "email",
+        result.token
+      );
+      toast.success(`Welcome to Letterbox, ${finalName}!`);
       triggerConfetti();
       navigate({ to: "/" });
-    }, 450);
+    } catch (err: any) {
+      setLoading(false);
+      playError(settings.soundEnabled);
+      toast.error(err?.message || "Could not create account. Please try again.");
+    }
   };
 
   return (
@@ -137,7 +271,7 @@ function Signup() {
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <Field
           label="Kid's first name"
-          placeholder="Amani"
+          placeholder="Enter your name"
           value={kidName}
           onChange={(e) => setKidName(e.target.value)}
         />
@@ -228,6 +362,97 @@ function Signup() {
           </button>
         </div>
       </div>
+
+      {/* MODAL: Phone Sign-Up Verification */}
+      {showPhoneModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-4xl border-2 border-border bg-card p-6 shadow-float animate-pop-in">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="grid size-8 place-items-center rounded-xl bg-primary-soft text-primary-deep">
+                  <Phone className="size-4" />
+                </div>
+                <h2 className="font-display text-lg font-bold text-primary-deep">
+                  {otpStep ? "Verification Code" : "Phone Sign Up"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPhoneModal(false);
+                  setOtpStep(false);
+                }}
+                className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePhoneSignupSubmit} className="mt-4 space-y-4">
+              {!otpStep ? (
+                <>
+                  <label className="block">
+                    <span className="ml-2 font-display text-xs font-bold text-primary-deep">
+                      Your First Name
+                    </span>
+                    <input
+                      type="text"
+                      value={phoneName}
+                      onChange={(e) => setPhoneName(e.target.value)}
+                      placeholder="e.g. Alex"
+                      className="mt-1 w-full rounded-3xl border-2 border-border bg-card px-5 py-3.5 text-base font-semibold outline-none focus:border-primary"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="ml-2 font-display text-xs font-bold text-primary-deep">
+                      Mobile Number
+                    </span>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+254 712 345 678"
+                      className="mt-1 w-full rounded-3xl border-2 border-border bg-card px-5 py-3.5 text-base font-semibold outline-none focus:border-primary"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="press w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
+                  >
+                    Send SMS code
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Code sent to <span className="font-bold text-foreground">{phone}</span>
+                  </p>
+                  <label className="block">
+                    <span className="ml-2 font-display text-xs font-bold text-primary-deep">
+                      4-Digit Verification Code
+                    </span>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value)}
+                      placeholder="••••"
+                      className="mt-1 w-full rounded-3xl border-2 border-border bg-card px-5 py-3 text-center font-display text-2xl font-bold tracking-widest outline-none focus:border-primary"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="press w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
+                  >
+                    Confirm & Start Adventure
+                  </button>
+                </>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Footer link to log in */}
       <p className="mt-8 text-center text-sm font-semibold text-muted-foreground">

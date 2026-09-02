@@ -12,6 +12,9 @@ export interface UserProfile {
   streak: number;
   xp: number;
   equippedItem: string | null;
+  age?: string;
+  email?: string;
+  provider?: string;
 }
 
 export interface UserSettings {
@@ -56,6 +59,7 @@ export interface LetterboxState {
     isLoggedIn: boolean;
     email?: string;
     provider?: string;
+    token?: string;
   };
 }
 
@@ -63,13 +67,13 @@ const STORAGE_KEY = "letterbox_player_state_v2";
 
 const DEFAULT_STATE: LetterboxState = {
   user: {
-    name: "Amani",
+    name: "Player",
     avatar: "lion",
-    level: 12,
-    title: "Budget Boss",
-    coins: 1240,
-    streak: 12,
-    xp: 3860,
+    level: 1,
+    title: "Beginner Saver",
+    coins: 100,
+    streak: 1,
+    xp: 250,
     equippedItem: null,
   },
   settings: {
@@ -89,15 +93,15 @@ const DEFAULT_STATE: LetterboxState = {
   badges: [
     { id: "medal", name: "First Coin", artKey: "badgeMedal", got: true, dateUnlocked: "Aug 12", desc: "Collected your very first gold coin in a quest.", xpValue: 50 },
     { id: "piggy", name: "Piggy Pro", artKey: "badgePiggy", got: true, dateUnlocked: "Aug 16", desc: "Deposited 100+ coins into your savings goal.", xpValue: 100 },
-    { id: "flame", name: "5 Day Streak", artKey: "badgeFlame", got: true, dateUnlocked: "Aug 20", desc: "Completed quests 5 days in a row.", xpValue: 150 },
-    { id: "sprout", name: "Smart Saver", artKey: "badgeSprout", got: true, dateUnlocked: "Aug 25", desc: "Completed the budget simulation.", xpValue: 100 },
+    { id: "flame", name: "5 Day Streak", artKey: "badgeFlame", got: false, desc: "Completed quests 5 days in a row.", xpValue: 150 },
+    { id: "sprout", name: "Smart Saver", artKey: "badgeSprout", got: false, desc: "Completed the budget simulation.", xpValue: 100 },
     { id: "target", name: "Goal Getter", artKey: "badgeTarget", got: false, desc: "Reach 100% of your personal savings goal.", xpValue: 200 },
     { id: "rocket", name: "Super Saver", artKey: "badgeRocket", got: false, desc: "Complete 10 quest levels without errors.", xpValue: 250 },
   ],
   gameProgress: {
-    "money-basics": 5,
-    "budget-boss": 2,
-    "save-invest": 1,
+    "money-basics": 1,
+    "budget-boss": 0,
+    "save-invest": 0,
     "smart-spender": 0,
     "digital-money": 0,
     "young-hustler": 0,
@@ -109,9 +113,9 @@ const DEFAULT_STATE: LetterboxState = {
     coins: 40,
   },
   auth: {
-    isLoggedIn: true,
-    email: "amani@family.com",
-    provider: "email",
+    isLoggedIn: false,
+    email: undefined,
+    provider: undefined,
   },
 };
 
@@ -121,6 +125,10 @@ function loadInitialState(): LetterboxState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      // Reset legacy hardcoded pseudo-name if present
+      if (parsed.user?.name === "Amani" && (!parsed.auth?.email || parsed.auth?.email === "amani@family.com")) {
+        return DEFAULT_STATE;
+      }
       return {
         ...DEFAULT_STATE,
         ...parsed,
@@ -313,35 +321,76 @@ export function useUserStore() {
     triggerConfetti();
   }, []);
 
-  const loginWithProvider = useCallback((provider: string, email = "amani@family.com", name = "Amani") => {
+  const loginWithProvider = useCallback((
+    provider: string,
+    email?: string,
+    name?: string,
+    avatar?: AvatarKey,
+    token?: string
+  ) => {
+    let resolvedName = name?.trim();
+    if (!resolvedName && email) {
+      const raw = email.split("@")[0] || "";
+      const parts = raw.split(/[._-]/).filter(Boolean);
+      resolvedName = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+    }
+    if (!resolvedName) {
+      resolvedName = "Player";
+    }
+
     globalState = {
       ...globalState,
       auth: {
         isLoggedIn: true,
-        email,
+        email: email || "",
         provider,
+        token,
       },
       user: {
         ...globalState.user,
-        name: name || globalState.user.name,
+        name: resolvedName,
+        email: email || "",
+        provider,
+        ...(avatar ? { avatar } : {}),
       },
     };
     emitChange();
     playSuccess(globalState.settings.soundEnabled);
   }, []);
 
-  const signupUser = useCallback((name: string, age: string, avatar: AvatarKey, email: string) => {
+  const signupUser = useCallback((
+    name: string,
+    age: string,
+    avatar: AvatarKey,
+    emailOrPhone: string,
+    provider = "signup",
+    token?: string
+  ) => {
+    let resolvedName = name?.trim();
+    if (!resolvedName && emailOrPhone) {
+      const raw = emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] : emailOrPhone;
+      const parts = raw.split(/[._-]/).filter(Boolean);
+      resolvedName = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+    }
+    if (!resolvedName) {
+      resolvedName = "Player";
+    }
+
     globalState = {
       ...globalState,
       auth: {
         isLoggedIn: true,
-        email,
-        provider: "signup",
+        email: emailOrPhone,
+        provider,
+        token,
       },
       user: {
         ...globalState.user,
-        name,
+        name: resolvedName,
+        age: age || "11",
         avatar,
+        email: emailOrPhone,
+        provider,
         coins: globalState.user.coins + 50,
       },
     };
@@ -357,6 +406,11 @@ export function useUserStore() {
         isLoggedIn: false,
         email: undefined,
         provider: undefined,
+        token: undefined,
+      },
+      user: {
+        ...globalState.user,
+        name: "Player",
       },
     };
     emitChange();

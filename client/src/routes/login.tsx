@@ -7,6 +7,14 @@ import { avatars, avatarList } from "@/assets/icons";
 import { useUserStore } from "../lib/userStore";
 import { toast } from "sonner";
 import { playPop, playSuccess, playError } from "../lib/audio";
+import {
+  authenticateWithGoogle,
+  authenticateWithApple,
+  authenticateWithEmail,
+  sendPhoneVerificationCode,
+} from "../lib/authService";
+import { getFirebaseErrorMessage, formatNameFromEmail } from "../lib/firebase";
+import type { ConfirmationResult } from "firebase/auth";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -62,8 +70,8 @@ function Login() {
   const navigate = useNavigate();
   const { loginWithProvider, settings } = useUserStore();
 
-  const [email, setEmail] = useState("amani@family.com");
-  const [password, setPassword] = useState("••••••");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Picture code modal state
@@ -72,31 +80,45 @@ function Login() {
 
   // Phone sign in modal state
   const [showPhoneModal, setShowPhoneModal] = useState(false);
-  const [phone, setPhone] = useState("+254 712 345 678");
+  const [phone, setPhone] = useState("");
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [phoneConfirmation, setPhoneConfirmation] = useState<ConfirmationResult | null>(null);
 
   // Forgot password modal
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [parentMathInput, setParentMathInput] = useState("");
   const [showParentReveal, setShowParentReveal] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    if (!password.trim()) {
+      toast.error("Please enter your secret password");
+      return;
+    }
     setLoading(true);
     playPop(settings.soundEnabled);
 
-    setTimeout(() => {
+    try {
+      const result = await authenticateWithEmail("login", email.trim(), password);
       setLoading(false);
-      const name = email.split("@")[0] || "Amani";
-      const formatted = name.charAt(0).toUpperCase() + name.slice(1);
-      loginWithProvider("email", email, formatted);
-      toast.success(`Welcome back, ${formatted}!`);
-      navigate({ to: "/" });
-    }, 450);
+      if (result.success) {
+        loginWithProvider("email", result.email, result.name, result.avatar, result.token);
+        toast.success(`Welcome back, ${result.name}!`);
+        navigate({ to: "/" });
+      }
+    } catch (err: any) {
+      setLoading(false);
+      playError(settings.soundEnabled);
+      toast.error(err?.message || "Incorrect email or password. Please try again or sign up.");
+    }
   };
 
-  const handleSocialAuth = (provider: "google" | "apple" | "phone") => {
+  const handleSocialAuth = async (provider: "google" | "apple" | "phone") => {
     if (provider === "phone") {
       playPop(settings.soundEnabled);
       setShowPhoneModal(true);
@@ -104,14 +126,28 @@ function Login() {
     }
 
     playPop(settings.soundEnabled);
-    toast.loading(`Signing in with ${provider === "google" ? "Google" : "Apple"}...`, { id: "social-auth" });
+    const providerLabel = provider === "google" ? "Google" : "Apple";
+    toast.loading(`Signing in with ${providerLabel}...`, { id: "social-auth" });
 
-    setTimeout(() => {
+    try {
+      const result =
+        provider === "google"
+          ? await authenticateWithGoogle("login")
+          : await authenticateWithApple("login");
+
       toast.dismiss("social-auth");
-      loginWithProvider(provider, `amani@${provider}.com`, "Amani");
-      toast.success("Welcome back, Amani!");
-      navigate({ to: "/" });
-    }, 550);
+      if (result.success) {
+        loginWithProvider(result.provider, result.email, result.name, result.avatar, result.token);
+        toast.success(`Welcome back, ${result.name}!`);
+        navigate({ to: "/" });
+      } else {
+        toast.error(`${providerLabel} sign-in could not be completed.`);
+      }
+    } catch (err: any) {
+      toast.dismiss("social-auth");
+      playError(settings.soundEnabled);
+      toast.error(err?.message || `${providerLabel} sign-in failed.`);
+    }
   };
 
   const handlePictureTap = (key: string) => {
@@ -123,7 +159,7 @@ function Login() {
       if (nextSeq.length === 3) {
         setTimeout(() => {
           setShowPictureModal(false);
-          loginWithProvider("picture", "amani@letterbox.kids", "Amani");
+          loginWithProvider("picture", "player@letterbox.kids", "Player");
           toast.success("Picture code verified! Welcome back.");
           navigate({ to: "/" });
         }, 400);
@@ -131,23 +167,51 @@ function Login() {
     }
   };
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpStep) {
+      if (!phone.trim()) {
+        toast.error("Please enter a mobile phone number (e.g. +254 712 345678)");
+        return;
+      }
       playPop(settings.soundEnabled);
-      setOtpStep(true);
-      setOtpCode("4829");
-      toast.info("Verification code sent. Code: 4829");
+      toast.loading("Sending SMS verification code...", { id: "phone-otp" });
+      try {
+        const confirmation = await sendPhoneVerificationCode(phone.trim());
+        toast.dismiss("phone-otp");
+        setPhoneConfirmation(confirmation);
+        setOtpStep(true);
+        setOtpCode("");
+        toast.success("SMS verification code sent to your phone!");
+      } catch (err: any) {
+        toast.dismiss("phone-otp");
+        playError(settings.soundEnabled);
+        toast.error(err?.message || "Could not send SMS code. Please check your phone number.");
+      }
     } else {
-      if (otpCode.length >= 4) {
+      if (!otpCode || otpCode.trim().length < 6) {
+        playError(settings.soundEnabled);
+        toast.error("Please enter the 6-digit SMS verification code");
+        return;
+      }
+      toast.loading("Verifying SMS code...", { id: "phone-verify" });
+      try {
+        if (!phoneConfirmation) {
+          throw new Error("Session expired. Please request a new SMS code.");
+        }
+        const userCredential = await phoneConfirmation.confirm(otpCode.trim());
+        toast.dismiss("phone-verify");
         playSuccess(settings.soundEnabled);
         setShowPhoneModal(false);
-        loginWithProvider("phone", phone, "Amani");
-        toast.success("Phone verified. Welcome back!");
+        const user = userCredential.user;
+        const finalName = user.displayName || formatNameFromEmail(user.email || phone.trim()) || "Player";
+        loginWithProvider("phone", phone.trim(), finalName);
+        toast.success(`Welcome back, ${finalName}!`);
         navigate({ to: "/" });
-      } else {
+      } catch (err: any) {
+        toast.dismiss("phone-verify");
         playError(settings.soundEnabled);
-        toast.error("Please enter a valid 4-digit code");
+        toast.error(getFirebaseErrorMessage(err) || "Invalid verification code. Please try again.");
       }
     }
   };
@@ -184,7 +248,7 @@ function Login() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <Field
           label="Your name or email"
-          placeholder="amani@family.com"
+          placeholder="yourname@family.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -312,11 +376,10 @@ function Login() {
                 return (
                   <div
                     key={idx}
-                    className={`grid size-14 place-items-center rounded-2xl border-2 p-1 transition-all ${
-                      avatarSrc
+                    className={`grid size-14 place-items-center rounded-2xl border-2 p-1 transition-all ${avatarSrc
                         ? "border-primary bg-primary-soft shadow-card scale-105"
                         : "border-dashed border-border bg-muted/30 text-xs font-bold text-muted-foreground"
-                    }`}
+                      }`}
                   >
                     {avatarSrc ? (
                       <img
@@ -495,7 +558,7 @@ function Login() {
             ) : (
               <div className="mt-4 space-y-3.5">
                 <div className="rounded-2xl border-2 border-primary bg-primary-soft p-4 text-center">
-                  <p className="text-xs font-bold text-primary-deep">Amani&apos;s Secret Code</p>
+                  <p className="text-xs font-bold text-primary-deep">Your Secret Code</p>
                   <p className="mt-1 font-display text-2xl font-bold tracking-widest text-primary-deep">
                     1 2 3 4
                   </p>

@@ -29,11 +29,11 @@ const initialProgress = () =>
   Object.fromEntries(games.map((g) => [g.id, g.done])) as Record<string, number>;
 
 const initialState = (): Session => ({
-  name: "Amani",
+  name: "Player",
   avatar: "lion",
-  coins: 1240,
-  xp: 3860,
-  streak: 12,
+  coins: 100,
+  xp: 250,
+  streak: 1,
   saved: 240,
   goal: 400,
   owned: [],
