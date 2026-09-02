@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, ChevronRight, ShieldCheck, Users, Volume2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
+import { avatars, avatarList } from "@/assets/icons";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/profile")({
   component: Profile,
 });
 
-const avatars = ["🦁", "🐨", "🐰", "🐵", "🦊", "🐼", "🐧", "🐸"];
+
 
 const settings = [
   { Icon: Volume2, label: "Sounds & music" },
@@ -36,8 +37,14 @@ function Profile() {
     <>
       <Screen>
         <div className="rounded-3xl border-2 border-border bg-leaf p-5 text-center shadow-card">
-          <div className="mx-auto grid size-24 place-items-center rounded-full border-4 border-card bg-card text-5xl shadow-card">
-            🦁
+          <div className="mx-auto grid size-24 animate-float-soft place-items-center rounded-full border-4 border-card bg-card p-2 shadow-card">
+            <img
+              src={avatars.lion}
+              alt="Your lion avatar"
+              width={384}
+              height={384}
+              className="size-full object-contain"
+            />
           </div>
           <h1 className="mt-3 text-2xl font-bold text-primary-foreground">Amani</h1>
           <p className="text-sm font-semibold text-primary-foreground/85">
@@ -61,14 +68,25 @@ function Profile() {
           Pick your avatar
         </h2>
         <div className="mt-3 grid grid-cols-4 gap-3">
-          {avatars.map((a, i) => (
+          {avatarList.map(([key, src], i) => (
             <button
-              key={a}
-              className={`grid aspect-square place-items-center rounded-3xl border-2 text-3xl shadow-card transition-transform active:scale-95 ${
+              key={key}
+              type="button"
+              aria-label={key}
+              className={`press grid aspect-square animate-pop-in place-items-center rounded-3xl border-2 p-2 shadow-card hover:-translate-y-1 active:scale-95 ${
                 i === 0 ? "border-primary bg-primary-soft" : "border-border bg-card"
               }`}
+              style={{ animationDelay: `${i * 55}ms` }}
             >
-              {a}
+              <img
+                src={src}
+                alt=""
+                aria-hidden
+                loading="lazy"
+                width={384}
+                height={384}
+                className="size-full object-contain"
+              />
             </button>
           ))}
         </div>
