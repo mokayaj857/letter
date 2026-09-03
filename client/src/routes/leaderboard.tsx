@@ -67,24 +67,24 @@ function Leaderboard() {
           This week&apos;s top coin collectors
         </p>
 
-        <div className="mt-6 flex items-end justify-center gap-3">
+        <div className="mt-6 flex items-end justify-center gap-3 sm:gap-6">
           {podium.map(({ kid, place, height, tone }, i) => (
             <div
               key={kid.name}
-              className="flex w-24 animate-slide-up flex-col items-center"
+              className="flex w-24 sm:w-28 md:w-32 animate-slide-up flex-col items-center"
               style={{ animationDelay: `${i * 110}ms` }}
             >
               {place === 1 && (
                 <Crown className="mb-1 size-6 animate-float-soft text-sun" strokeWidth={2.4} />
               )}
-              <div className="grid size-14 place-items-center overflow-hidden rounded-full border-4 border-card bg-card shadow-card">
+              <div className="grid size-14 sm:size-16 place-items-center overflow-hidden rounded-full border-4 border-card bg-card shadow-card">
                 <img
                   src={avatars[kid.avatar]}
                   alt={`${kid.name} avatar`}
                   loading="lazy"
                   width={384}
                   height={384}
-                  className="size-11 object-contain"
+                  className="size-11 sm:size-12 object-contain"
                 />
               </div>
               <p className="mt-1 truncate font-display text-sm font-bold">{kid.name}</p>

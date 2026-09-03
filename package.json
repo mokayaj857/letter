@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@react-native-firebase/app": "^26.3.3",
-    "@react-native-firebase/auth": "^26.3.3",
-    "firebase": "^12.18.0"
-  }
-}

@@ -128,7 +128,7 @@ function Rewards() {
 
         {/* Badges Grid */}
         <h2 className="mt-7 font-display text-xl font-bold text-primary-deep">My badges</h2>
-        <div className="mt-3 grid grid-cols-3 gap-3">
+        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-3">
           {badges.map((b, i) => {
             const artSrc = icons[b.artKey as keyof typeof icons] || icons.badgeMedal;
 
@@ -218,8 +218,8 @@ function Rewards() {
 
       {/* MODAL: Deposit Coins to Goal */}
       {showDepositModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-4xl border-2 border-border bg-card p-6 shadow-float animate-pop-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-bold text-primary-deep">
                 Deposit to Savings
