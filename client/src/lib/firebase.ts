@@ -12,6 +12,7 @@ import {
   sendPasswordResetEmail,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  getAdditionalUserInfo,
   type Auth,
   type User,
   type ConfirmationResult,
@@ -134,13 +135,25 @@ export function getFirebaseErrorMessage(error: any): string {
 /**
  * Firebase Google Sign In / Sign Up
  */
-export async function firebaseSignInWithGoogle(): Promise<{
+export async function firebaseSignInWithGoogle(mode: "login" | "signup" = "login"): Promise<{
   user: User;
   email: string;
   displayName: string;
   token?: string;
+  isNewUser?: boolean;
 }> {
   const result = await signInWithPopup(auth, googleProvider);
+  const info = getAdditionalUserInfo(result);
+
+  if (mode === "login" && info?.isNewUser) {
+    try {
+      await result.user.delete();
+    } catch {
+      await signOut(auth);
+    }
+    throw new Error("No account found for this Google account. Please sign up first.");
+  }
+
   const user = result.user;
   const token = await user.getIdToken().catch(() => undefined);
   const email = user.email || "user@gmail.com";
@@ -150,19 +163,32 @@ export async function firebaseSignInWithGoogle(): Promise<{
     email,
     displayName,
     token,
+    isNewUser: info?.isNewUser,
   };
 }
 
 /**
  * Firebase Apple Sign In / Sign Up
  */
-export async function firebaseSignInWithApple(): Promise<{
+export async function firebaseSignInWithApple(mode: "login" | "signup" = "login"): Promise<{
   user: User;
   email: string;
   displayName: string;
   token?: string;
+  isNewUser?: boolean;
 }> {
   const result = await signInWithPopup(auth, appleProvider);
+  const info = getAdditionalUserInfo(result);
+
+  if (mode === "login" && info?.isNewUser) {
+    try {
+      await result.user.delete();
+    } catch {
+      await signOut(auth);
+    }
+    throw new Error("No account found for this Apple account. Please sign up first.");
+  }
+
   const user = result.user;
   const token = await user.getIdToken().catch(() => undefined);
   const email = user.email || `${(user.displayName || "user").toLowerCase()}@privaterelay.appleid.com`;
@@ -172,6 +198,7 @@ export async function firebaseSignInWithApple(): Promise<{
     email,
     displayName,
     token,
+    isNewUser: info?.isNewUser,
   };
 }
 
@@ -188,6 +215,26 @@ export async function firebaseSignInWithEmail(email: string, password: string): 
  */
 export async function firebaseSignUpWithEmail(email: string, password: string): Promise<User> {
   const result = await createUserWithEmailAndPassword(auth, email, password);
+  return result.user;
+}
+
+/**
+ * Verify OTP on Login and reject if it is a new/unregistered user
+ */
+export async function confirmPhoneLoginOtp(
+  confirmation: ConfirmationResult,
+  code: string
+): Promise<User> {
+  const result = await confirmation.confirm(code);
+  const info = getAdditionalUserInfo(result);
+  if (info?.isNewUser) {
+    try {
+      await result.user.delete();
+    } catch {
+      await signOut(auth);
+    }
+    throw new Error("No account found with this phone number. Please sign up first.");
+  }
   return result.user;
 }
 

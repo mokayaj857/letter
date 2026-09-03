@@ -66,7 +66,7 @@ export async function authenticateWithGoogle(
   }
 
   try {
-    const fbResult = await firebaseSignInWithGoogle();
+    const fbResult = await firebaseSignInWithGoogle(mode);
     const finalName =
       fbResult.displayName ||
       options?.name?.trim() ||
@@ -108,7 +108,7 @@ export async function authenticateWithApple(
   }
 
   try {
-    const fbResult = await firebaseSignInWithApple();
+    const fbResult = await firebaseSignInWithApple(mode);
     const finalName =
       fbResult.displayName ||
       options?.name?.trim() ||

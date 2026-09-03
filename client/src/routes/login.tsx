@@ -13,7 +13,7 @@ import {
   authenticateWithEmail,
   sendPhoneVerificationCode,
 } from "../lib/authService";
-import { getFirebaseErrorMessage, formatNameFromEmail } from "../lib/firebase";
+import { getFirebaseErrorMessage, formatNameFromEmail, confirmPhoneLoginOtp } from "../lib/firebase";
 import type { ConfirmationResult } from "firebase/auth";
 
 export const Route = createFileRoute("/login")({
@@ -68,7 +68,7 @@ export function AppleIcon({ className = "size-5" }: { className?: string }) {
 
 function Login() {
   const navigate = useNavigate();
-  const { loginWithProvider, settings } = useUserStore();
+  const { loginWithProvider, settings, findAccountByPictureCode } = useUserStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -114,7 +114,7 @@ function Login() {
     } catch (err: any) {
       setLoading(false);
       playError(settings.soundEnabled);
-      toast.error(err?.message || "Incorrect email or password. Please try again or sign up.");
+      toast.error(err?.message || "No account found with these credentials. Please sign up first.");
     }
   };
 
@@ -146,7 +146,7 @@ function Login() {
     } catch (err: any) {
       toast.dismiss("social-auth");
       playError(settings.soundEnabled);
-      toast.error(err?.message || `${providerLabel} sign-in failed.`);
+      toast.error(err?.message || `No account found for this ${providerLabel} account. Please sign up first.`);
     }
   };
 
@@ -157,12 +157,21 @@ function Login() {
       setPictureSequence(nextSeq);
 
       if (nextSeq.length === 3) {
-        setTimeout(() => {
-          setShowPictureModal(false);
-          loginWithProvider("picture", "player@letterbox.kids", "Player");
-          toast.success("Picture code verified! Welcome back.");
-          navigate({ to: "/" });
-        }, 400);
+        const matched = findAccountByPictureCode(nextSeq);
+        if (matched) {
+          setTimeout(() => {
+            setShowPictureModal(false);
+            loginWithProvider("picture", matched.emailOrPhone, matched.name, matched.avatar);
+            toast.success(`Picture code verified! Welcome back, ${matched.name}.`);
+            navigate({ to: "/" });
+          }, 400);
+        } else {
+          setTimeout(() => {
+            playError(settings.soundEnabled);
+            toast.error("No account found with this picture code. Please sign up first.");
+            setPictureSequence([]);
+          }, 300);
+        }
       }
     }
   };
@@ -199,11 +208,10 @@ function Login() {
         if (!phoneConfirmation) {
           throw new Error("Session expired. Please request a new SMS code.");
         }
-        const userCredential = await phoneConfirmation.confirm(otpCode.trim());
+        const user = await confirmPhoneLoginOtp(phoneConfirmation, otpCode.trim());
         toast.dismiss("phone-verify");
         playSuccess(settings.soundEnabled);
         setShowPhoneModal(false);
-        const user = userCredential.user;
         const finalName = user.displayName || formatNameFromEmail(user.email || phone.trim()) || "Player";
         loginWithProvider("phone", phone.trim(), finalName);
         toast.success(`Welcome back, ${finalName}!`);
@@ -211,7 +219,7 @@ function Login() {
       } catch (err: any) {
         toast.dismiss("phone-verify");
         playError(settings.soundEnabled);
-        toast.error(getFirebaseErrorMessage(err) || "Invalid verification code. Please try again.");
+        toast.error(getFirebaseErrorMessage(err) || "No account found with this phone number. Please sign up first.");
       }
     }
   };

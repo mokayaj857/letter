@@ -42,6 +42,17 @@ export interface UserBadge {
   xpValue: number;
 }
 
+export interface RegisteredAccount {
+  id: string;
+  emailOrPhone: string;
+  name: string;
+  avatar: AvatarKey;
+  age?: string;
+  provider: string;
+  pictureCode?: string[];
+  createdAt: string;
+}
+
 export interface LetterboxState {
   user: UserProfile;
   settings: UserSettings;
@@ -61,6 +72,7 @@ export interface LetterboxState {
     provider?: string;
     token?: string;
   };
+  registeredAccounts: RegisteredAccount[];
 }
 
 const STORAGE_KEY = "letterbox_player_state_v2";
@@ -117,6 +129,7 @@ const DEFAULT_STATE: LetterboxState = {
     email: undefined,
     provider: undefined,
   },
+  registeredAccounts: [],
 };
 
 function loadInitialState(): LetterboxState {
@@ -135,6 +148,7 @@ function loadInitialState(): LetterboxState {
         user: { ...DEFAULT_STATE.user, ...(parsed.user || {}) },
         settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) },
         goal: { ...DEFAULT_STATE.goal, ...(parsed.goal || {}) },
+        registeredAccounts: parsed.registeredAccounts || [],
       };
     }
   } catch (e) {
@@ -321,6 +335,30 @@ export function useUserStore() {
     triggerConfetti();
   }, []);
 
+  const isAccountRegistered = useCallback((emailOrPhone: string): boolean => {
+    if (!emailOrPhone) return false;
+    const norm = emailOrPhone.trim().toLowerCase();
+    return (globalState.registeredAccounts || []).some(
+      (acc) => acc.emailOrPhone.trim().toLowerCase() === norm
+    );
+  }, []);
+
+  const getRegisteredAccount = useCallback((identifier: string): RegisteredAccount | undefined => {
+    if (!identifier) return undefined;
+    const norm = identifier.trim().toLowerCase();
+    return (globalState.registeredAccounts || []).find(
+      (acc) => acc.emailOrPhone.trim().toLowerCase() === norm
+    );
+  }, []);
+
+  const findAccountByPictureCode = useCallback((code: string[]): RegisteredAccount | undefined => {
+    if (!code || code.length < 3) return undefined;
+    const target = code.join("-");
+    return (globalState.registeredAccounts || []).find(
+      (acc) => acc.pictureCode && acc.pictureCode.join("-") === target
+    );
+  }, []);
+
   const loginWithProvider = useCallback((
     provider: string,
     email?: string,
@@ -364,7 +402,8 @@ export function useUserStore() {
     avatar: AvatarKey,
     emailOrPhone: string,
     provider = "signup",
-    token?: string
+    token?: string,
+    pictureCode?: string[]
   ) => {
     let resolvedName = name?.trim();
     if (!resolvedName && emailOrPhone) {
@@ -376,8 +415,38 @@ export function useUserStore() {
       resolvedName = "Player";
     }
 
+    const currentAccounts = globalState.registeredAccounts || [];
+    const norm = emailOrPhone.trim().toLowerCase();
+    const existingIndex = currentAccounts.findIndex(
+      (a) => a.emailOrPhone.trim().toLowerCase() === norm
+    );
+
+    let updatedAccounts: RegisteredAccount[];
+    if (existingIndex >= 0) {
+      updatedAccounts = currentAccounts.map((a, idx) =>
+        idx === existingIndex
+          ? { ...a, name: resolvedName, age, avatar, pictureCode: pictureCode || a.pictureCode }
+          : a
+      );
+    } else {
+      updatedAccounts = [
+        ...currentAccounts,
+        {
+          id: `acc_${Date.now()}`,
+          emailOrPhone: emailOrPhone.trim(),
+          name: resolvedName,
+          avatar,
+          age: age || "11",
+          provider,
+          pictureCode,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+    }
+
     globalState = {
       ...globalState,
+      registeredAccounts: updatedAccounts,
       auth: {
         isLoggedIn: true,
         email: emailOrPhone,
@@ -432,6 +501,7 @@ export function useUserStore() {
     gameProgress: state.gameProgress,
     dailyChallenge: state.dailyChallenge,
     auth: state.auth,
+    registeredAccounts: state.registeredAccounts,
     // Actions
     updateProfile,
     addCoins,
@@ -447,5 +517,8 @@ export function useUserStore() {
     signupUser,
     logout,
     resetAllProgress,
+    isAccountRegistered,
+    getRegisteredAccount,
+    findAccountByPictureCode,
   };
 }
