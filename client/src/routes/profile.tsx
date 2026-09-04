@@ -18,6 +18,7 @@ import {
   Mail,
   Sliders,
   Award,
+  Radio,
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
@@ -25,7 +26,7 @@ import { avatars, avatarList, type AvatarKey } from "@/assets/icons";
 import { useUserStore } from "../lib/userStore";
 import { Coin } from "@/components/Coin";
 import { toast } from "sonner";
-import { playPop, playSuccess, playError, playCoin } from "../lib/audio";
+import { playPop, playSuccess, playError, playCoin, BGM_TRACKS, getCurrentBgmTrack } from "../lib/audio";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -71,6 +72,7 @@ function Profile() {
     toggleMusic,
     setMusicVolume,
     setSoundVolume,
+    setBgmTrack,
     toggleReminders,
     updateSettings,
     resetAllProgress,
@@ -638,6 +640,79 @@ function Profile() {
                     onChange={(e) => setMusicVolume(Number(e.target.value))}
                     className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer disabled:opacity-40"
                   />
+                </div>
+              </div>
+
+              {/* Soundtrack Theme Playlist Selection */}
+              <div className="rounded-3xl border-2 border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Radio className="size-4 text-primary-deep" />
+                    <p className="font-display text-sm font-bold text-foreground">
+                      Soundtrack Playlist
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-primary/20 px-2 py-0.5 font-display text-[10px] font-bold text-primary-deep">
+                    4 Looping Themes
+                  </span>
+                </div>
+
+                <p className="text-[11px] font-semibold text-muted-foreground mb-3">
+                  Choose a favorite sound theme or let all 4 loop in sequence:
+                </p>
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBgmTrack("auto");
+                      toast.success("Auto-looping all 4 soundtracks in sequence!");
+                    }}
+                    className={`press flex w-full items-center justify-between rounded-2xl border-2 p-3 text-left transition-all ${
+                      (!settings.bgmTrack || settings.bgmTrack === "auto")
+                        ? "border-primary bg-primary-soft text-primary-deep shadow-sm"
+                        : "border-border bg-card hover:bg-muted/40 text-foreground"
+                    }`}
+                  >
+                    <div>
+                      <p className="font-display text-xs font-bold">✨ Auto-Loop Playlist (Default)</p>
+                      <p className="text-[10px] text-muted-foreground">Plays all tracks in a continuous variety loop</p>
+                    </div>
+                    {(!settings.bgmTrack || settings.bgmTrack === "auto") && (
+                      <Check className="size-4 text-primary" strokeWidth={3} />
+                    )}
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {BGM_TRACKS.map((t, idx) => {
+                      const isSelected = settings.bgmTrack === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => {
+                            setBgmTrack(t.id);
+                            toast.success(`Active theme: ${t.title}`);
+                          }}
+                          className={`press flex flex-col justify-between rounded-2xl border-2 p-2.5 text-left transition-all ${
+                            isSelected
+                              ? "border-primary bg-primary-soft text-primary-deep shadow-sm"
+                              : "border-border bg-card hover:bg-muted/40 text-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-display text-[11px] font-bold truncate">
+                              #{idx + 1} {t.title.split(" ")[0]}
+                            </span>
+                            {isSelected && <Check className="size-3 text-primary" strokeWidth={3} />}
+                          </div>
+                          <p className="text-[9px] font-semibold text-muted-foreground truncate mt-0.5">
+                            {t.mood}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

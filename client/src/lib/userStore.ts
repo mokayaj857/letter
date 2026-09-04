@@ -6,6 +6,7 @@ import {
   playSuccess,
   setMusicVolume as applyMusicVolume,
   setSoundVolume as applySoundVolume,
+  setSelectedTrackPreference,
   stopBackgroundMusic,
 } from "./audio";
 import { triggerConfetti } from "./confetti";
@@ -29,6 +30,7 @@ export interface UserSettings {
   musicEnabled: boolean;
   musicVolume?: number; // 0 to 100, default 70
   soundVolume?: number; // 0 to 100, default 80
+  bgmTrack?: string; // "auto" or specific track id
   remindersEnabled: boolean;
   streakFreeze: boolean;
   parentPin: string;
@@ -103,6 +105,7 @@ const DEFAULT_STATE: LetterboxState = {
     musicEnabled: true,
     musicVolume: 70,
     soundVolume: 80,
+    bgmTrack: "auto",
     remindersEnabled: true,
     streakFreeze: true,
     parentPin: "1234",
@@ -165,12 +168,14 @@ function loadInitialState(): LetterboxState {
           musicEnabled: parsed.settings?.musicEnabled ?? true,
           musicVolume: parsed.settings?.musicVolume ?? 70,
           soundVolume: parsed.settings?.soundVolume ?? 80,
+          bgmTrack: parsed.settings?.bgmTrack ?? "auto",
         },
         goal: { ...DEFAULT_STATE.goal, ...(parsed.goal || {}) },
         registeredAccounts: parsed.registeredAccounts || [],
       };
       applyMusicVolume(loaded.settings.musicVolume ?? 70);
       applySoundVolume(loaded.settings.soundVolume ?? 80);
+      setSelectedTrackPreference(loaded.settings.bgmTrack || "auto");
       return loaded;
     }
   } catch (e) {
@@ -301,6 +306,16 @@ export function useUserStore() {
     };
     emitChange();
     applySoundVolume(clamped);
+  }, []);
+
+  const setBgmTrack = useCallback((trackId: string) => {
+    globalState = {
+      ...globalState,
+      settings: { ...globalState.settings, bgmTrack: trackId },
+    };
+    emitChange();
+    setSelectedTrackPreference(trackId);
+    playPop(globalState.settings.soundEnabled);
   }, []);
 
   const toggleReminders = useCallback(() => {
@@ -571,6 +586,7 @@ export function useUserStore() {
     toggleMusic,
     setMusicVolume,
     setSoundVolume,
+    setBgmTrack,
     toggleReminders,
     updateSettings,
     depositToGoal,

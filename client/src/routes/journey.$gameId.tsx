@@ -121,7 +121,7 @@ function Journey() {
     return () => {
       stopBackgroundMusic();
     };
-  }, [settings.musicEnabled, settings.soundEnabled, settings.musicVolume]);
+  }, [settings.musicEnabled, settings.soundEnabled, settings.musicVolume, settings.bgmTrack]);
 
   const currentProgress = gameProgress[game.id] ?? game.done;
   const total = game.levels.length;
