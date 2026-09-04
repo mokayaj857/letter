@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { HelpCircle, Lock, Check, Plus, X } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
@@ -38,7 +38,18 @@ const shopItems = [
 ];
 
 function Rewards() {
-  const { user, goal, ownedItems, badges, buyShopItem, depositToGoal, settings } = useUserStore();
+  const { user, goal, ownedItems, badges, buyShopItem, depositToGoal, settings, auth } = useUserStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!auth?.isLoggedIn) {
+      navigate({ to: "/signup", replace: true });
+    }
+  }, [auth?.isLoggedIn, navigate]);
+
+  if (!auth?.isLoggedIn) {
+    return null;
+  }
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState(50);
 

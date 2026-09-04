@@ -19,6 +19,7 @@ export interface UserProfile {
 
 export interface UserSettings {
   soundEnabled: boolean;
+  musicEnabled: boolean;
   remindersEnabled: boolean;
   streakFreeze: boolean;
   parentPin: string;
@@ -90,6 +91,7 @@ const DEFAULT_STATE: LetterboxState = {
   },
   settings: {
     soundEnabled: true,
+    musicEnabled: true,
     remindersEnabled: true,
     streakFreeze: true,
     parentPin: "1234",
@@ -146,7 +148,11 @@ function loadInitialState(): LetterboxState {
         ...DEFAULT_STATE,
         ...parsed,
         user: { ...DEFAULT_STATE.user, ...(parsed.user || {}) },
-        settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) },
+        settings: {
+          ...DEFAULT_STATE.settings,
+          ...(parsed.settings || {}),
+          musicEnabled: parsed.settings?.musicEnabled ?? true,
+        },
         goal: { ...DEFAULT_STATE.goal, ...(parsed.goal || {}) },
         registeredAccounts: parsed.registeredAccounts || [],
       };
@@ -241,6 +247,16 @@ export function useUserStore() {
     };
     emitChange();
     if (nextVal) playPop(true);
+  }, []);
+
+  const toggleMusic = useCallback(() => {
+    const nextVal = !globalState.settings.musicEnabled;
+    globalState = {
+      ...globalState,
+      settings: { ...globalState.settings, musicEnabled: nextVal },
+    };
+    emitChange();
+    if (nextVal) playPop(globalState.settings.soundEnabled);
   }, []);
 
   const toggleReminders = useCallback(() => {
@@ -508,6 +524,7 @@ export function useUserStore() {
     addXp,
     setAvatar,
     toggleSound,
+    toggleMusic,
     toggleReminders,
     updateSettings,
     depositToGoal,

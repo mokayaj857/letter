@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { createFileRoute, Link, notFound, useNavigate, redirect } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Check,
@@ -91,7 +91,18 @@ const QUIZ_DATA = [
 
 function Journey() {
   const { game } = Route.useLoaderData();
-  const { gameProgress, completeLevel, settings, user } = useUserStore();
+  const { gameProgress, completeLevel, settings, user, auth } = useUserStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!auth?.isLoggedIn) {
+      navigate({ to: "/signup", replace: true });
+    }
+  }, [auth?.isLoggedIn, navigate]);
+
+  if (!auth?.isLoggedIn) {
+    return null;
+  }
 
   const currentProgress = gameProgress[game.id] ?? game.done;
   const total = game.levels.length;

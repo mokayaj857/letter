@@ -7,6 +7,7 @@ import mascot from "@/assets/mascot.png";
 import { avatars, icons } from "@/assets/icons";
 import { games } from "@/data/games";
 import { useUserStore } from "../lib/userStore";
+import { Signup } from "./signup";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,8 +28,18 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: GamesHub,
+  component: IndexPage,
 });
+
+function IndexPage() {
+  const { auth } = useUserStore();
+
+  if (!auth?.isLoggedIn) {
+    return <Signup />;
+  }
+
+  return <GamesHub />;
+}
 
 function GamesHub() {
   const { user, gameProgress } = useUserStore();

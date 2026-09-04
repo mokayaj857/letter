@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Phone, ArrowLeft, Sparkles, Check, X } from "lucide-react";
 import { Screen } from "@/components/PhoneFrame";
@@ -39,9 +39,15 @@ export const Route = createFileRoute("/signup")({
 const avatars = avatarList.slice(0, 6);
 const ages = ["10", "11", "12", "13+"];
 
-function Signup() {
+export function Signup() {
   const navigate = useNavigate();
-  const { signupUser, settings } = useUserStore();
+  const { signupUser, settings, auth } = useUserStore();
+
+  useEffect(() => {
+    if (auth?.isLoggedIn) {
+      navigate({ to: "/", replace: true });
+    }
+  }, [auth?.isLoggedIn, navigate]);
 
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarKey>("lion");
   const [selectedAge, setSelectedAge] = useState("11");

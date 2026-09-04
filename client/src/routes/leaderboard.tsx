@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { Crown } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
@@ -43,7 +44,18 @@ const baseRest: Kid[] = [
 ];
 
 function Leaderboard() {
-  const { user } = useUserStore();
+  const { user, auth } = useUserStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!auth?.isLoggedIn) {
+      navigate({ to: "/signup", replace: true });
+    }
+  }, [auth?.isLoggedIn, navigate]);
+
+  if (!auth?.isLoggedIn) {
+    return null;
+  }
 
   const top: Kid[] = baseTop.map((k) =>
     k.me

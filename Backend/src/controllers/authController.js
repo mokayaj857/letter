@@ -43,13 +43,13 @@ exports.login = async (req, res) => {
   try {
     const [users] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
     if (users.length === 0) {
-      return res.status(400).json({ success: false, message: 'Invalid credentials.' });
+      return res.status(404).json({ success: false, message: 'No account found with this email. Please sign up first.' });
     }
 
     const user = users[0];
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
-      return res.status(400).json({ success: false, message: 'Invalid credentials.' });
+      return res.status(400).json({ success: false, message: 'Incorrect password. Please try again.' });
     }
 
     const token = jwt.sign(

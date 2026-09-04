@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Phone, Check, X, Shield, Grid3X3 } from "lucide-react";
 import { Screen } from "@/components/PhoneFrame";
@@ -68,7 +68,13 @@ export function AppleIcon({ className = "size-5" }: { className?: string }) {
 
 function Login() {
   const navigate = useNavigate();
-  const { loginWithProvider, settings, findAccountByPictureCode } = useUserStore();
+  const { loginWithProvider, settings, findAccountByPictureCode, auth } = useUserStore();
+
+  useEffect(() => {
+    if (auth?.isLoggedIn) {
+      navigate({ to: "/", replace: true });
+    }
+  }, [auth?.isLoggedIn, navigate]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import {
   Bell,
   ChevronRight,
@@ -7,6 +7,7 @@ import {
   Users,
   Volume2,
   VolumeX,
+  Music,
   Edit3,
   Check,
   X,
@@ -71,7 +72,18 @@ function Profile() {
     updateSettings,
     resetAllProgress,
     logout,
+    auth,
   } = useUserStore();
+
+  useEffect(() => {
+    if (!auth?.isLoggedIn) {
+      navigate({ to: "/signup", replace: true });
+    }
+  }, [auth?.isLoggedIn, navigate]);
+
+  if (!auth?.isLoggedIn) {
+    return null;
+  }
 
   // Modals state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -914,7 +926,7 @@ function Profile() {
                 onClick={() => {
                   logout();
                   setShowLogoutModal(false);
-                  navigate({ to: "/login" });
+                  navigate({ to: "/signup" });
                 }}
                 className="flex-1 rounded-3xl bg-destructive py-3 font-display text-sm font-bold text-destructive-foreground shadow hover:opacity-90 transition-opacity"
               >
