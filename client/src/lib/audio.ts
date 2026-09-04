@@ -1,8 +1,17 @@
-// Web Audio API sound synthesizer
+// Web Audio API Sound Synthesizer & Melodic Game Background Music Engine
 
 let audioCtx: AudioContext | null = null;
+let currentMusicVolume = 70; // 0 to 100
+let currentSoundVolume = 80; // 0 to 100
+let isBgmActive = false;
+let bgmInterval: any = null;
+let bgmMasterGain: GainNode | null = null;
+let bgmFilterNode: BiquadFilterNode | null = null;
+let bgmDelayNode: DelayNode | null = null;
+let bgmFeedbackGain: GainNode | null = null;
+let activePadOscillators: OscillatorNode[] = [];
 
-function getAudioContext(): AudioContext | null {
+export function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   if (!audioCtx) {
     const AudioContextClass =
@@ -13,51 +22,112 @@ function getAudioContext(): AudioContext | null {
     }
   }
   if (audioCtx && audioCtx.state === "suspended") {
-    audioCtx.resume();
+    audioCtx.resume().catch(() => {});
   }
   return audioCtx;
 }
 
+export function unlockAudio() {
+  if (typeof window === "undefined") return;
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+  }
+}
+
+// Global auto-unlock listeners on first user interaction
+if (typeof window !== "undefined") {
+  const handleFirstInteraction = () => {
+    unlockAudio();
+    if (isBgmActive) {
+      // Re-trigger music volume and scheduled notes if suspended
+      if (bgmMasterGain && audioCtx) {
+        const targetGain = (currentMusicVolume / 100) * 0.35;
+        bgmMasterGain.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+      }
+    }
+  };
+  window.addEventListener("pointerdown", handleFirstInteraction, { passive: true });
+  window.addEventListener("click", handleFirstInteraction, { passive: true });
+  window.addEventListener("touchstart", handleFirstInteraction, { passive: true });
+  window.addEventListener("keydown", handleFirstInteraction, { passive: true });
+}
+
+export function setMusicVolume(volume: number) {
+  currentMusicVolume = Math.max(0, Math.min(100, volume));
+  if (bgmMasterGain && audioCtx) {
+    try {
+      const targetGain = (currentMusicVolume / 100) * 0.35;
+      const now = audioCtx.currentTime;
+      bgmMasterGain.gain.cancelScheduledValues(now);
+      bgmMasterGain.gain.setValueAtTime(bgmMasterGain.gain.value, now);
+      bgmMasterGain.gain.linearRampToValueAtTime(targetGain, now + 0.1);
+    } catch (e) {
+      console.debug(e);
+    }
+  }
+}
+
+export function setSoundVolume(volume: number) {
+  currentSoundVolume = Math.max(0, Math.min(100, volume));
+}
+
+export function getMusicVolume(): number {
+  return currentMusicVolume;
+}
+
+export function getSoundVolume(): number {
+  return currentSoundVolume;
+}
+
+function getSfxGainMultiplier(): number {
+  return Math.max(0, Math.min(1, currentSoundVolume / 100));
+}
+
 export function playPop(soundEnabled = true) {
-  if (!soundEnabled) return;
+  if (!soundEnabled || currentSoundVolume <= 0) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+    unlockAudio();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const mult = getSfxGainMultiplier();
     osc.type = "sine";
     const now = ctx.currentTime;
-    osc.frequency.setValueAtTime(420, now);
-    osc.frequency.exponentialRampToValueAtTime(780, now + 0.07);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+    gain.gain.setValueAtTime(0.25 * mult, now);
+    gain.gain.exponentialRampToValueAtTime(0.01 * mult, now + 0.08);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.07);
+    osc.stop(now + 0.08);
   } catch (e) {
     console.debug(e);
   }
 }
 
 export function playCoin(soundEnabled = true) {
-  if (!soundEnabled) return;
+  if (!soundEnabled || currentSoundVolume <= 0) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+    unlockAudio();
     const now = ctx.currentTime;
+    const mult = getSfxGainMultiplier();
     [987.77, 1318.51].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "triangle";
-      const start = now + idx * 0.07;
+      const start = now + idx * 0.08;
       osc.frequency.setValueAtTime(freq, start);
-      gain.gain.setValueAtTime(0.25, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+      gain.gain.setValueAtTime(0.3 * mult, start);
+      gain.gain.exponentialRampToValueAtTime(0.001 * mult, start + 0.25);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(start);
-      osc.stop(start + 0.22);
+      osc.stop(start + 0.25);
     });
   } catch (e) {
     console.debug(e);
@@ -65,23 +135,25 @@ export function playCoin(soundEnabled = true) {
 }
 
 export function playSuccess(soundEnabled = true) {
-  if (!soundEnabled) return;
+  if (!soundEnabled || currentSoundVolume <= 0) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+    unlockAudio();
     const now = ctx.currentTime;
+    const mult = getSfxGainMultiplier();
     [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
-      const start = now + idx * 0.08;
+      const start = now + idx * 0.09;
       osc.frequency.setValueAtTime(freq, start);
-      gain.gain.setValueAtTime(0.2, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+      gain.gain.setValueAtTime(0.28 * mult, start);
+      gain.gain.exponentialRampToValueAtTime(0.001 * mult, start + 0.32);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(start);
-      osc.stop(start + 0.3);
+      osc.stop(start + 0.32);
     });
   } catch (e) {
     console.debug(e);
@@ -89,18 +161,20 @@ export function playSuccess(soundEnabled = true) {
 }
 
 export function playVictory(soundEnabled = true) {
-  if (!soundEnabled) return;
+  if (!soundEnabled || currentSoundVolume <= 0) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+    unlockAudio();
     const now = ctx.currentTime;
+    const mult = getSfxGainMultiplier();
     const melody = [
       { f: 523.25, d: 0.12 },
       { f: 659.25, d: 0.12 },
       { f: 783.99, d: 0.12 },
       { f: 1046.5, d: 0.28 },
       { f: 880.0, d: 0.14 },
-      { f: 1046.5, d: 0.4 },
+      { f: 1046.5, d: 0.45 },
     ];
     let offset = 0;
     melody.forEach((note) => {
@@ -109,8 +183,8 @@ export function playVictory(soundEnabled = true) {
       osc.type = "triangle";
       const start = now + offset;
       osc.frequency.setValueAtTime(note.f, start);
-      gain.gain.setValueAtTime(0.25, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + note.d);
+      gain.gain.setValueAtTime(0.32 * mult, start);
+      gain.gain.exponentialRampToValueAtTime(0.001 * mult, start + note.d);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(start);
@@ -123,18 +197,20 @@ export function playVictory(soundEnabled = true) {
 }
 
 export function playError(soundEnabled = true) {
-  if (!soundEnabled) return;
+  if (!soundEnabled || currentSoundVolume <= 0) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+    unlockAudio();
     const now = ctx.currentTime;
+    const mult = getSfxGainMultiplier();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sawtooth";
     osc.frequency.setValueAtTime(220, now);
     osc.frequency.linearRampToValueAtTime(140, now + 0.18);
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+    gain.gain.setValueAtTime(0.2 * mult, now);
+    gain.gain.exponentialRampToValueAtTime(0.01 * mult, now + 0.18);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
@@ -144,66 +220,50 @@ export function playError(soundEnabled = true) {
   }
 }
 
-// ==========================================
-// Ambient Distant Game Background Music (BGM)
-// ==========================================
+// ==============================================================
+// Melodic Cheerful Game Background Music (BGM) Engine
+// ==============================================================
 
-let bgmInterval: any = null;
-let bgmFilterNode: BiquadFilterNode | null = null;
-let bgmMasterGain: GainNode | null = null;
-let bgmDelayNode: DelayNode | null = null;
-let bgmFeedbackGain: GainNode | null = null;
-let isBgmActive = false;
-let activePadOscillators: OscillatorNode[] = [];
-
-// Peaceful pentatonic scales and harmonic chord progressions for calm gaming
+// Chords: C major, A minor, F major, G major
 const BGM_CHORDS = [
-  // C Major: C3, G3, E4
-  [130.81, 196.0, 329.63],
-  // A Minor: A2, E3, C4
-  [110.0, 164.81, 261.63],
-  // F Major: F2, C3, A3
-  [87.31, 130.81, 220.0],
-  // G Major: G2, D3, B3
-  [98.0, 146.83, 246.94],
+  { root: 130.81, notes: [261.63, 329.63, 392.0] },  // C3 + C4, E4, G4
+  { root: 110.0,  notes: [220.0, 261.63, 329.63] },  // A2 + A3, C4, E4
+  { root: 87.31,  notes: [174.61, 220.0, 261.63] },  // F2 + F3, A3, C4
+  { root: 98.0,   notes: [196.0, 246.94, 293.66] },  // G2 + G3, B3, D4
 ];
 
-const BGM_MELODY_NOTES = [
-  261.63, // C4
-  293.66, // D4
-  329.63, // E4
-  392.0,  // G4
-  440.0,  // A4
-  523.25, // C5
-  587.33, // D5
-  659.25, // E5
-  783.99, // G5
+const BGM_MELODIES = [
+  // Sweet pentatonic chime melodies
+  [523.25, 587.33, 659.25, 783.99], // C5, D5, E5, G5
+  [659.25, 587.33, 523.25, 440.0],  // E5, D5, C5, A4
+  [523.25, 659.25, 783.99, 1046.5], // C5, E5, G5, C6
+  [783.99, 659.25, 587.33, 523.25], // G5, E5, D5, C5
 ];
 
-let currentChordIndex = 0;
-let stepCounter = 0;
+let chordStep = 0;
+let beatInBar = 0;
 
 function setupBgmBus(ctx: AudioContext) {
   if (bgmMasterGain && bgmFilterNode) return;
 
-  // Master Gain for Music (keeps it low and distant)
+  // Master Gain for Music
   bgmMasterGain = ctx.createGain();
-  bgmMasterGain.gain.setValueAtTime(0, ctx.currentTime);
+  const initialGain = (currentMusicVolume / 100) * 0.35;
+  bgmMasterGain.gain.setValueAtTime(initialGain, ctx.currentTime);
 
-  // Lowpass filter to create that distant / soft ambient warmth
+  // Warm filter to shape tone
   bgmFilterNode = ctx.createBiquadFilter();
   bgmFilterNode.type = "lowpass";
-  bgmFilterNode.frequency.setValueAtTime(820, ctx.currentTime);
-  bgmFilterNode.Q.setValueAtTime(1.1, ctx.currentTime);
+  bgmFilterNode.frequency.setValueAtTime(2400, ctx.currentTime);
+  bgmFilterNode.Q.setValueAtTime(1.0, ctx.currentTime);
 
-  // Gentle spacious echo/delay
+  // Spacious gentle delay
   bgmDelayNode = ctx.createDelay();
-  bgmDelayNode.delayTime.setValueAtTime(0.36, ctx.currentTime);
+  bgmDelayNode.delayTime.setValueAtTime(0.32, ctx.currentTime);
   bgmFeedbackGain = ctx.createGain();
-  bgmFeedbackGain.gain.setValueAtTime(0.22, ctx.currentTime);
+  bgmFeedbackGain.gain.setValueAtTime(0.25, ctx.currentTime);
 
-  // Routing: Sources -> Filter -> Master Gain -> Destination
-  // + Delay Loop: Filter -> Delay -> Feedback -> Delay & Filter -> Master Gain
+  // Routing
   bgmFilterNode.connect(bgmMasterGain);
   bgmFilterNode.connect(bgmDelayNode);
   bgmDelayNode.connect(bgmFeedbackGain);
@@ -213,36 +273,56 @@ function setupBgmBus(ctx: AudioContext) {
   bgmMasterGain.connect(ctx.destination);
 }
 
-function playBgmPadChord(ctx: AudioContext, freqs: number[], durationSec = 3.2) {
+function playBgmBass(ctx: AudioContext, freq: number, duration = 0.3) {
+  if (!bgmFilterNode) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.24, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    osc.connect(gain);
+    gain.connect(bgmFilterNode);
+
+    osc.start(now);
+    osc.stop(now + duration);
+  } catch (e) {
+    console.debug(e);
+  }
+}
+
+function playBgmChordPad(ctx: AudioContext, freqs: number[], duration = 1.4) {
   if (!bgmFilterNode) return;
   const now = ctx.currentTime;
 
-  // Stop previous pads gently
+  // Clean previous pads
   activePadOscillators.forEach((osc) => {
-    try {
-      osc.stop(now + 0.3);
-    } catch {}
+    try { osc.stop(now + 0.1); } catch {}
   });
   activePadOscillators = [];
 
-  freqs.forEach((freq, idx) => {
+  freqs.forEach((freq) => {
     try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = idx === 0 ? "sine" : "triangle";
+      osc.type = "sine";
       osc.frequency.setValueAtTime(freq, now);
 
-      // Gentle swelling envelope
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.exponentialRampToValueAtTime(0.025, now + 0.8);
-      gain.gain.setValueAtTime(0.025, now + durationSec - 0.6);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + durationSec);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.1);
+      gain.gain.setValueAtTime(0.10, now + duration - 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
       osc.connect(gain);
       gain.connect(bgmFilterNode!);
 
       osc.start(now);
-      osc.stop(now + durationSec);
+      osc.stop(now + duration);
       activePadOscillators.push(osc);
     } catch (e) {
       console.debug(e);
@@ -250,90 +330,97 @@ function playBgmPadChord(ctx: AudioContext, freqs: number[], durationSec = 3.2) 
   });
 }
 
-function playBgmChimeNote(ctx: AudioContext, freq: number) {
+function playBgmChime(ctx: AudioContext, freq: number) {
   if (!bgmFilterNode) return;
   try {
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-
     osc.type = "sine";
     osc.frequency.setValueAtTime(freq, now);
 
-    // Warm kalimba / music box chime envelope
+    // Warm marimba/kalimba chime
     gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.035, now + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.0005, now + 1.2);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
 
     osc.connect(gain);
     gain.connect(bgmFilterNode);
 
     osc.start(now);
-    osc.stop(now + 1.2);
+    osc.stop(now + 0.65);
   } catch (e) {
     console.debug(e);
   }
 }
 
-function bgmTick() {
+function bgmStep() {
   const ctx = getAudioContext();
   if (!ctx || !isBgmActive) return;
 
-  // Change pad chord every 8 steps (~3.2 seconds)
-  if (stepCounter % 8 === 0) {
-    const chord = BGM_CHORDS[currentChordIndex % BGM_CHORDS.length];
-    playBgmPadChord(ctx, chord, 3.4);
-    currentChordIndex++;
+  if (ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+    return;
   }
 
-  // Play melodic chimes on rhythmic beats with some variation
-  const stepInBar = stepCounter % 8;
-  const playMelody = [0, 2, 3, 5, 6].includes(stepInBar) || Math.random() < 0.35;
-  if (playMelody) {
-    const note = BGM_MELODY_NOTES[Math.floor(Math.random() * BGM_MELODY_NOTES.length)];
-    playBgmChimeNote(ctx, note);
+  const currentChord = BGM_CHORDS[chordStep % BGM_CHORDS.length];
+  const melodySet = BGM_MELODIES[chordStep % BGM_MELODIES.length];
+
+  // Beat 0: New chord pad + Root bass
+  if (beatInBar === 0) {
+    playBgmChordPad(ctx, currentChord.notes, 1.5);
+    playBgmBass(ctx, currentChord.root, 0.4);
   }
 
-  stepCounter++;
+  // Beat 2: Fifth/Octave bass bounce
+  if (beatInBar === 2) {
+    playBgmBass(ctx, currentChord.root * 1.5, 0.3);
+  }
+
+  // Melodic chimes on rhythmic beats
+  if (beatInBar === 0 || beatInBar === 1 || beatInBar === 2 || beatInBar === 3) {
+    const note = melodySet[beatInBar % melodySet.length];
+    playBgmChime(ctx, note);
+  }
+
+  beatInBar = (beatInBar + 1) % 4;
+  if (beatInBar === 0) {
+    chordStep = (chordStep + 1) % BGM_CHORDS.length;
+  }
 }
 
-export function startBackgroundMusic(musicEnabled = true, soundEnabled = true) {
+export function startBackgroundMusic(musicEnabled = true, soundEnabled = true, volume = 70) {
   if (!musicEnabled || !soundEnabled) return;
-  if (isBgmActive) return;
+  if (volume !== undefined) {
+    currentMusicVolume = Math.max(0, Math.min(100, volume));
+  }
+  if (currentMusicVolume <= 0) return;
 
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  if (ctx.state === "suspended") {
-    const resumeHandler = () => {
-      if (ctx.state === "suspended") {
-        ctx.resume();
-      }
-      window.removeEventListener("pointerdown", resumeHandler);
-      window.removeEventListener("keydown", resumeHandler);
-    };
-    window.addEventListener("pointerdown", resumeHandler, { once: true });
-    window.addEventListener("keydown", resumeHandler, { once: true });
-    ctx.resume().catch(() => {});
-  }
-
+  unlockAudio();
   setupBgmBus(ctx);
-  isBgmActive = true;
-  stepCounter = 0;
-  currentChordIndex = 0;
 
-  // Smooth fade-in
+  const targetGain = (currentMusicVolume / 100) * 0.35;
+
   if (bgmMasterGain) {
     const now = ctx.currentTime;
     bgmMasterGain.gain.cancelScheduledValues(now);
-    bgmMasterGain.gain.setValueAtTime(bgmMasterGain.gain.value || 0.001, now);
-    bgmMasterGain.gain.exponentialRampToValueAtTime(0.045, now + 1.5);
+    bgmMasterGain.gain.setValueAtTime(bgmMasterGain.gain.value, now);
+    bgmMasterGain.gain.linearRampToValueAtTime(targetGain, now + 0.3);
   }
 
-  // Immediately trigger first tick and start loop
-  bgmTick();
+  if (isBgmActive) return;
+
+  isBgmActive = true;
+  chordStep = 0;
+  beatInBar = 0;
+
+  // Trigger immediate beat and start interval (every 380ms per beat = ~158 BPM)
+  bgmStep();
   if (bgmInterval) clearInterval(bgmInterval);
-  bgmInterval = setInterval(bgmTick, 400);
+  bgmInterval = setInterval(bgmStep, 380);
 }
 
 export function stopBackgroundMusic() {
@@ -351,22 +438,18 @@ export function stopBackgroundMusic() {
       const now = ctx.currentTime;
       bgmMasterGain.gain.cancelScheduledValues(now);
       bgmMasterGain.gain.setValueAtTime(bgmMasterGain.gain.value, now);
-      bgmMasterGain.gain.linearRampToValueAtTime(0.0001, now + 0.8);
+      bgmMasterGain.gain.linearRampToValueAtTime(0.0001, now + 0.5);
     } catch {}
   }
 
-  // Clean up active oscillators after fade
   setTimeout(() => {
     activePadOscillators.forEach((osc) => {
-      try {
-        osc.stop();
-      } catch {}
+      try { osc.stop(); } catch {}
     });
     activePadOscillators = [];
-  }, 850);
+  }, 600);
 }
 
 export function isBackgroundMusicPlaying() {
   return isBgmActive;
 }
-

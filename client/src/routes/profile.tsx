@@ -68,6 +68,9 @@ function Profile() {
     setAvatar,
     updateProfile,
     toggleSound,
+    toggleMusic,
+    setMusicVolume,
+    setSoundVolume,
     toggleReminders,
     updateSettings,
     resetAllProgress,
@@ -93,6 +96,7 @@ function Profile() {
   const [activeStatModal, setActiveStatModal] = useState<"coins" | "streak" | "xp" | null>(null);
 
   // Settings modals
+  const [showAudioModal, setShowAudioModal] = useState(false);
   const [showRemindersModal, setShowRemindersModal] = useState(false);
   const [selectedReminderTime, setSelectedReminderTime] = useState("4:00 PM");
 
@@ -264,43 +268,39 @@ function Profile() {
 
         <div className="mt-3 space-y-3">
           {/* Sounds & Music Card */}
-          <div className="flex items-center justify-between rounded-3xl border-2 border-border bg-card p-4 shadow-card">
+          <button
+            type="button"
+            onClick={() => {
+              playPop(settings.soundEnabled);
+              setShowAudioModal(true);
+            }}
+            className="press flex w-full items-center justify-between rounded-3xl border-2 border-border bg-card p-4 shadow-card hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
+          >
             <div className="flex items-center gap-3.5">
               <span className="grid size-11 place-items-center rounded-2xl bg-sun text-sun-foreground">
-                {settings.soundEnabled ? (
+                {settings.soundEnabled && (settings.musicEnabled || (settings.soundVolume ?? 80) > 0) ? (
                   <Volume2 className="size-5" strokeWidth={2.4} />
                 ) : (
                   <VolumeX className="size-5" strokeWidth={2.4} />
                 )}
               </span>
-              <div>
-                <p className="font-display font-bold text-foreground">Sounds & music</p>
+              <div className="text-left">
+                <p className="font-display font-bold text-foreground">Music & sounds</p>
                 <p className="text-xs font-semibold text-muted-foreground">
-                  {settings.soundEnabled ? "Audio effects active" : "Audio muted"}
+                  {settings.soundEnabled
+                    ? `BGM: ${settings.musicEnabled ? `${settings.musicVolume ?? 70}%` : "Off"} · SFX: ${settings.soundVolume ?? 80}%`
+                    : "Audio muted"}
                 </p>
               </div>
             </div>
 
-            {/* Tactile Toggle Switch */}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={settings.soundEnabled}
-              onClick={() => {
-                toggleSound();
-                toast.info(settings.soundEnabled ? "Sounds turned off" : "Sounds turned on");
-              }}
-              className={`press relative h-8 w-14 rounded-full border-2 border-border p-0.5 transition-colors ${
-                settings.soundEnabled ? "bg-primary" : "bg-muted"
-              }`}
-            >
-              <div
-                className={`size-6 rounded-full bg-card shadow-card transition-transform duration-200 ${
-                  settings.soundEnabled ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-sun/20 px-2.5 py-0.5 font-display text-[11px] font-bold text-sun-foreground">
+                Adjust
+              </span>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </div>
+          </button>
 
           {/* Reminders Card */}
           <button
@@ -558,6 +558,164 @@ function Profile() {
               className="press mt-5 w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
             >
               Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Music & Sounds Adjustment */}
+      {showAudioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-2xl bg-sun text-sun-foreground">
+                  <Music className="size-5" />
+                </span>
+                <h2 className="font-display text-xl font-bold text-primary-deep">
+                  Music & Sounds
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  playPop(settings.soundEnabled);
+                  setShowAudioModal(false);
+                }}
+                className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {/* Background Music Section */}
+              <div className="rounded-3xl border-2 border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid size-8 place-items-center rounded-xl bg-sun/30 text-sun-foreground">
+                      <Music className="size-4" />
+                    </span>
+                    <div>
+                      <p className="font-display text-sm font-bold text-foreground">
+                        Game Background Music
+                      </p>
+                      <p className="text-[11px] font-semibold text-muted-foreground">
+                        Plays calm tunes during quests
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={settings.musicEnabled}
+                    onClick={() => toggleMusic()}
+                    className={`press relative h-7 w-12 rounded-full border-2 border-border p-0.5 transition-colors ${
+                      settings.musicEnabled ? "bg-primary" : "bg-muted"
+                    }`}
+                  >
+                    <div
+                      className={`size-5 rounded-full bg-card shadow transition-transform duration-200 ${
+                        settings.musicEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Music Volume Slider */}
+                <div className="mt-3.5 pt-3 border-t border-border/60">
+                  <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-1.5">
+                    <span>Music Volume</span>
+                    <span className="text-primary-deep font-display font-bold">{settings.musicVolume ?? 70}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={settings.musicVolume ?? 70}
+                    disabled={!settings.musicEnabled}
+                    onChange={(e) => setMusicVolume(Number(e.target.value))}
+                    className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer disabled:opacity-40"
+                  />
+                </div>
+              </div>
+
+              {/* Sound Effects Section */}
+              <div className="rounded-3xl border-2 border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid size-8 place-items-center rounded-xl bg-leaf/40 text-leaf-foreground">
+                      <Volume2 className="size-4" />
+                    </span>
+                    <div>
+                      <p className="font-display text-sm font-bold text-foreground">
+                        Sound Effects
+                      </p>
+                      <p className="text-[11px] font-semibold text-muted-foreground">
+                        Coins, pops, clicks & fanfare
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={settings.soundEnabled}
+                    onClick={() => toggleSound()}
+                    className={`press relative h-7 w-12 rounded-full border-2 border-border p-0.5 transition-colors ${
+                      settings.soundEnabled ? "bg-primary" : "bg-muted"
+                    }`}
+                  >
+                    <div
+                      className={`size-5 rounded-full bg-card shadow transition-transform duration-200 ${
+                        settings.soundEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* SFX Volume Slider */}
+                <div className="mt-3.5 pt-3 border-t border-border/60">
+                  <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-1.5">
+                    <span>Effects Volume</span>
+                    <span className="text-primary-deep font-display font-bold">{settings.soundVolume ?? 80}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={settings.soundVolume ?? 80}
+                    disabled={!settings.soundEnabled}
+                    onChange={(e) => setSoundVolume(Number(e.target.value))}
+                    className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer disabled:opacity-40"
+                  />
+                </div>
+              </div>
+
+              {/* Test Sound Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  playCoin(true);
+                  toast.success("Coin sound played!");
+                }}
+                className="press flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card py-2.5 font-display text-xs font-bold text-primary-deep shadow-sm hover:bg-muted/40"
+              >
+                <Coin className="size-4" />
+                <span>Test Sound Effects</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                playPop(settings.soundEnabled);
+                setShowAudioModal(false);
+              }}
+              className="press mt-5 w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
+            >
+              Done
             </button>
           </div>
         </div>

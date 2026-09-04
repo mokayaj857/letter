@@ -17,7 +17,15 @@ import { getGame, type Level } from "@/data/games";
 import { useUserStore } from "../lib/userStore";
 import { Coin } from "@/components/Coin";
 import { toast } from "sonner";
-import { playPop, playSuccess, playVictory, playError } from "../lib/audio";
+import {
+  playPop,
+  playSuccess,
+  playVictory,
+  playError,
+  startBackgroundMusic,
+  stopBackgroundMusic,
+  unlockAudio,
+} from "../lib/audio";
 import { triggerConfetti } from "../lib/confetti";
 
 export const Route = createFileRoute("/journey/$gameId")({
@@ -104,6 +112,17 @@ function Journey() {
     return null;
   }
 
+  useEffect(() => {
+    if (settings.musicEnabled && settings.soundEnabled && (settings.musicVolume ?? 70) > 0) {
+      startBackgroundMusic(true, true, settings.musicVolume ?? 70);
+    } else {
+      stopBackgroundMusic();
+    }
+    return () => {
+      stopBackgroundMusic();
+    };
+  }, [settings.musicEnabled, settings.soundEnabled, settings.musicVolume]);
+
   const currentProgress = gameProgress[game.id] ?? game.done;
   const total = game.levels.length;
   const pct = Math.min(100, Math.round((currentProgress / total) * 100));
@@ -122,11 +141,15 @@ function Journey() {
   const activeLevel = playingLevelIndex !== null ? game.levels[playingLevelIndex] : null;
 
   const startLevel = (idx: number) => {
+    unlockAudio();
     const isUnlocked = idx <= currentProgress;
     if (!isUnlocked) {
       playError(settings.soundEnabled);
       toast.info("Clear earlier levels to unlock this quest.");
       return;
+    }
+    if (settings.musicEnabled && settings.soundEnabled) {
+      startBackgroundMusic(true, true, settings.musicVolume ?? 70);
     }
     playPop(settings.soundEnabled);
     setPlayingLevelIndex(idx);

@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import type { AvatarKey } from "@/assets/icons";
-import { playCoin, playPop, playSuccess } from "./audio";
+import {
+  playCoin,
+  playPop,
+  playSuccess,
+  setMusicVolume as applyMusicVolume,
+  setSoundVolume as applySoundVolume,
+  stopBackgroundMusic,
+} from "./audio";
 import { triggerConfetti } from "./confetti";
 
 export interface UserProfile {
@@ -20,6 +27,8 @@ export interface UserProfile {
 export interface UserSettings {
   soundEnabled: boolean;
   musicEnabled: boolean;
+  musicVolume?: number; // 0 to 100, default 70
+  soundVolume?: number; // 0 to 100, default 80
   remindersEnabled: boolean;
   streakFreeze: boolean;
   parentPin: string;
@@ -92,6 +101,8 @@ const DEFAULT_STATE: LetterboxState = {
   settings: {
     soundEnabled: true,
     musicEnabled: true,
+    musicVolume: 70,
+    soundVolume: 80,
     remindersEnabled: true,
     streakFreeze: true,
     parentPin: "1234",
@@ -144,7 +155,7 @@ function loadInitialState(): LetterboxState {
       if (parsed.user?.name === "Amani" && (!parsed.auth?.email || parsed.auth?.email === "amani@family.com")) {
         return DEFAULT_STATE;
       }
-      return {
+      const loaded: LetterboxState = {
         ...DEFAULT_STATE,
         ...parsed,
         user: { ...DEFAULT_STATE.user, ...(parsed.user || {}) },
@@ -152,10 +163,15 @@ function loadInitialState(): LetterboxState {
           ...DEFAULT_STATE.settings,
           ...(parsed.settings || {}),
           musicEnabled: parsed.settings?.musicEnabled ?? true,
+          musicVolume: parsed.settings?.musicVolume ?? 70,
+          soundVolume: parsed.settings?.soundVolume ?? 80,
         },
         goal: { ...DEFAULT_STATE.goal, ...(parsed.goal || {}) },
         registeredAccounts: parsed.registeredAccounts || [],
       };
+      applyMusicVolume(loaded.settings.musicVolume ?? 70);
+      applySoundVolume(loaded.settings.soundVolume ?? 80);
+      return loaded;
     }
   } catch (e) {
     console.error("Failed to load player state:", e);
@@ -246,6 +262,9 @@ export function useUserStore() {
       settings: { ...globalState.settings, soundEnabled: nextVal },
     };
     emitChange();
+    if (!nextVal) {
+      stopBackgroundMusic();
+    }
     if (nextVal) playPop(true);
   }, []);
 
@@ -256,7 +275,32 @@ export function useUserStore() {
       settings: { ...globalState.settings, musicEnabled: nextVal },
     };
     emitChange();
+    if (!nextVal) {
+      stopBackgroundMusic();
+    } else {
+      applyMusicVolume(globalState.settings.musicVolume ?? 70);
+    }
     if (nextVal) playPop(globalState.settings.soundEnabled);
+  }, []);
+
+  const setMusicVolume = useCallback((volume: number) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(volume)));
+    globalState = {
+      ...globalState,
+      settings: { ...globalState.settings, musicVolume: clamped },
+    };
+    emitChange();
+    applyMusicVolume(clamped);
+  }, []);
+
+  const setSoundVolume = useCallback((volume: number) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(volume)));
+    globalState = {
+      ...globalState,
+      settings: { ...globalState.settings, soundVolume: clamped },
+    };
+    emitChange();
+    applySoundVolume(clamped);
   }, []);
 
   const toggleReminders = useCallback(() => {
@@ -525,6 +569,8 @@ export function useUserStore() {
     setAvatar,
     toggleSound,
     toggleMusic,
+    setMusicVolume,
+    setSoundVolume,
     toggleReminders,
     updateSettings,
     depositToGoal,
