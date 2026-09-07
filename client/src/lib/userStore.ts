@@ -10,6 +10,9 @@ import {
   stopBackgroundMusic,
 } from "./audio";
 import { triggerConfetti } from "./confetti";
+import api from "./api";
+import { isFirebaseConfigured, subscribeToFirebaseAuthState } from "./firebase";
+import { signOutEverywhere } from "./authService";
 
 export interface UserProfile {
   name: string;
@@ -87,8 +90,6 @@ export interface LetterboxState {
   registeredAccounts: RegisteredAccount[];
 }
 
-const STORAGE_KEY = "letterbox_player_state_v2";
-
 const DEFAULT_STATE: LetterboxState = {
   user: {
     name: "Player",
@@ -142,60 +143,106 @@ const DEFAULT_STATE: LetterboxState = {
   },
   auth: {
     isLoggedIn: false,
-    email: undefined,
-    provider: undefined,
   },
   registeredAccounts: [],
 };
 
-function loadInitialState(): LetterboxState {
-  if (typeof window === "undefined") return DEFAULT_STATE;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      // Reset legacy hardcoded pseudo-name if present
-      if (parsed.user?.name === "Amani" && (!parsed.auth?.email || parsed.auth?.email === "amani@family.com")) {
-        return DEFAULT_STATE;
-      }
-      const loaded: LetterboxState = {
-        ...DEFAULT_STATE,
-        ...parsed,
-        user: { ...DEFAULT_STATE.user, ...(parsed.user || {}) },
-        settings: {
-          ...DEFAULT_STATE.settings,
-          ...(parsed.settings || {}),
-          musicEnabled: parsed.settings?.musicEnabled ?? true,
-          musicVolume: parsed.settings?.musicVolume ?? 70,
-          soundVolume: parsed.settings?.soundVolume ?? 80,
-          bgmTrack: parsed.settings?.bgmTrack ?? "auto",
-        },
-        goal: { ...DEFAULT_STATE.goal, ...(parsed.goal || {}) },
-        registeredAccounts: parsed.registeredAccounts || [],
-      };
-      applyMusicVolume(loaded.settings.musicVolume ?? 70);
-      applySoundVolume(loaded.settings.soundVolume ?? 80);
-      setSelectedTrackPreference(loaded.settings.bgmTrack || "auto");
-      return loaded;
-    }
-  } catch (e) {
-    console.error("Failed to load player state:", e);
-  }
-  return DEFAULT_STATE;
+function cloneState(state: LetterboxState): LetterboxState {
+  return JSON.parse(JSON.stringify(state)) as LetterboxState;
 }
 
-let globalState: LetterboxState = loadInitialState();
+function mergeRegisteredAccounts(
+  local: RegisteredAccount[],
+  remote: RegisteredAccount[] | undefined
+): RegisteredAccount[] {
+  if (!remote || remote.length === 0) return local;
+  const byKey = new Map<string, RegisteredAccount>();
+  for (const acc of [...remote, ...local]) {
+    const key = acc.id || acc.emailOrPhone.toLowerCase();
+    if (key && !byKey.has(key)) byKey.set(key, acc);
+  }
+  return Array.from(byKey.values());
+}
+
+function normalizeState(partial: Partial<LetterboxState>): LetterboxState {
+  const state: LetterboxState = {
+    ...DEFAULT_STATE,
+    ...partial,
+    user: { ...DEFAULT_STATE.user, ...(partial.user || {}) },
+    settings: {
+      ...DEFAULT_STATE.settings,
+      ...(partial.settings || {}),
+      musicEnabled: partial.settings?.musicEnabled ?? true,
+      musicVolume: partial.settings?.musicVolume ?? 70,
+      soundVolume: partial.settings?.soundVolume ?? 80,
+      bgmTrack: partial.settings?.bgmTrack ?? "auto",
+    },
+    goal: { ...DEFAULT_STATE.goal, ...(partial.goal || {}) },
+    registeredAccounts: mergeRegisteredAccounts(
+      (partial.registeredAccounts || []),
+      undefined
+    ),
+    auth: { ...DEFAULT_STATE.auth, ...(partial.auth || {}) },
+  };
+  return state;
+}
+
+/**
+ * Merge a dashboard payload returned by the backend into global state.
+ * Server data is authoritative, but locally-created registered accounts
+ * (e.g. a just-signed-up sibling) are preserved when the server doesn't
+ * know about them yet.
+ */
+function adoptDashboard(data: Partial<LetterboxState>): void {
+  const auth = { ...globalState.auth, ...(data.auth || {}) };
+  const remoteAccounts = data.registeredAccounts;
+  globalState = normalizeState({
+    ...data,
+    registeredAccounts: mergeRegisteredAccounts(globalState.registeredAccounts, remoteAccounts),
+    auth,
+  });
+  applyMusicVolume(globalState.settings.musicVolume ?? 70);
+  applySoundVolume(globalState.settings.soundVolume ?? 80);
+  setSelectedTrackPreference(globalState.settings.bgmTrack || "auto");
+  emitChange();
+}
+
+/**
+ * Fire a backend sync in the background. On success the authoritative
+ * dashboard replaces the local state; failures are non-fatal (offline demo).
+ */
+function syncWithBackend(promise: Promise<{ success: boolean; data?: any }>): void {
+  promise
+    .then((res) => {
+      if (res && res.data) adoptDashboard(res.data);
+    })
+    .catch(() => {
+      // Backend offline/unavailable — keep the optimistic local state.
+    });
+}
+
+let globalState: LetterboxState = cloneState(DEFAULT_STATE);
 const listeners = new Set<() => void>();
 
 function emitChange() {
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(globalState));
-    } catch (e) {
-      console.error("Failed to persist player state:", e);
-    }
-  }
   listeners.forEach((listener) => listener());
+}
+
+// Restore a previously signed-in Firebase session on app load, pulling the
+// authoritative player state from the backend instead of localStorage.
+if (typeof window !== "undefined" && isFirebaseConfigured()) {
+  try {
+    subscribeToFirebaseAuthState((fbUser) => {
+      if (fbUser) {
+        syncWithBackend(api.dashboard());
+      } else if (globalState.auth.isLoggedIn) {
+        globalState = cloneState({ ...DEFAULT_STATE, registeredAccounts: globalState.registeredAccounts });
+        emitChange();
+      }
+    });
+  } catch (e) {
+    console.warn("Failed to subscribe to Firebase auth state:", e);
+  }
 }
 
 export function useUserStore() {
@@ -216,6 +263,18 @@ export function useUserStore() {
     };
     emitChange();
     playPop(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      const body: Record<string, unknown> = {};
+      if (updates.name !== undefined) body["name"] = updates.name;
+      if (updates.title !== undefined) body["title"] = updates.title;
+      if (updates.avatar !== undefined) body["avatar"] = updates.avatar;
+      if (updates.age !== undefined) body["age"] = updates.age;
+      if (updates.email !== undefined) body["email"] = updates.email;
+      if (Object.keys(body).length > 0) {
+        syncWithBackend(api.updateProfile(body));
+      }
+    }
   }, []);
 
   const addCoins = useCallback((amount: number) => {
@@ -258,6 +317,10 @@ export function useUserStore() {
     };
     emitChange();
     playPop(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateProfile({ avatar }));
+    }
   }, []);
 
   const toggleSound = useCallback(() => {
@@ -271,6 +334,10 @@ export function useUserStore() {
       stopBackgroundMusic();
     }
     if (nextVal) playPop(true);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings({ soundEnabled: nextVal }));
+    }
   }, []);
 
   const toggleMusic = useCallback(() => {
@@ -286,6 +353,10 @@ export function useUserStore() {
       applyMusicVolume(globalState.settings.musicVolume ?? 70);
     }
     if (nextVal) playPop(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings({ musicEnabled: nextVal }));
+    }
   }, []);
 
   const setMusicVolume = useCallback((volume: number) => {
@@ -296,6 +367,10 @@ export function useUserStore() {
     };
     emitChange();
     applyMusicVolume(clamped);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings({ musicVolume: clamped }));
+    }
   }, []);
 
   const setSoundVolume = useCallback((volume: number) => {
@@ -306,6 +381,10 @@ export function useUserStore() {
     };
     emitChange();
     applySoundVolume(clamped);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings({ soundVolume: clamped }));
+    }
   }, []);
 
   const setBgmTrack = useCallback((trackId: string) => {
@@ -316,18 +395,27 @@ export function useUserStore() {
     emitChange();
     setSelectedTrackPreference(trackId);
     playPop(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings({ bgmTrack: trackId }));
+    }
   }, []);
 
   const toggleReminders = useCallback(() => {
+    const nextVal = !globalState.settings.remindersEnabled;
     globalState = {
       ...globalState,
       settings: {
         ...globalState.settings,
-        remindersEnabled: !globalState.settings.remindersEnabled,
+        remindersEnabled: nextVal,
       },
     };
     emitChange();
     playPop(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings({ remindersEnabled: nextVal }));
+    }
   }, []);
 
   const updateSettings = useCallback((updates: Partial<UserSettings>) => {
@@ -337,6 +425,10 @@ export function useUserStore() {
     };
     emitChange();
     playPop(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateSettings(updates));
+    }
   }, []);
 
   const depositToGoal = useCallback((amount: number) => {
@@ -366,6 +458,10 @@ export function useUserStore() {
       playSuccess(globalState.settings.soundEnabled);
       triggerConfetti();
     }
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.updateGoal({ deposit: amount }));
+    }
     return true;
   }, []);
 
@@ -385,6 +481,10 @@ export function useUserStore() {
     emitChange();
     playSuccess(globalState.settings.soundEnabled);
     triggerConfetti();
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.buyItem(itemId, cost));
+    }
     return true;
   }, []);
 
@@ -408,6 +508,10 @@ export function useUserStore() {
     emitChange();
     playSuccess(globalState.settings.soundEnabled);
     triggerConfetti();
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.completeLevel({ gameId, levelIndex, xpReward, coinReward }));
+    }
   }, []);
 
   const isAccountRegistered = useCallback((emailOrPhone: string): boolean => {
@@ -439,7 +543,8 @@ export function useUserStore() {
     email?: string,
     name?: string,
     avatar?: AvatarKey,
-    token?: string
+    token?: string,
+    firebaseUid?: string
   ) => {
     let resolvedName = name?.trim();
     if (!resolvedName && email) {
@@ -451,14 +556,16 @@ export function useUserStore() {
       resolvedName = "Player";
     }
 
+    const authUpdate: LetterboxState["auth"] = {
+      isLoggedIn: true,
+      email: email || "",
+      provider,
+    };
+    if (token) authUpdate.token = token;
+
     globalState = {
       ...globalState,
-      auth: {
-        isLoggedIn: true,
-        email: email || "",
-        provider,
-        token,
-      },
+      auth: authUpdate,
       user: {
         ...globalState.user,
         name: resolvedName,
@@ -469,6 +576,18 @@ export function useUserStore() {
     };
     emitChange();
     playSuccess(globalState.settings.soundEnabled);
+
+    if (firebaseUid || (email && email.includes("@"))) {
+      syncWithBackend(
+        api.socialLogin({
+          provider: provider || "email",
+          email: email || "",
+          username: resolvedName,
+          ...(avatar ? { avatar } : {}),
+          ...(firebaseUid ? { firebaseUid } : {}),
+        })
+      );
+    }
   }, []);
 
   const signupUser = useCallback((
@@ -478,11 +597,12 @@ export function useUserStore() {
     emailOrPhone: string,
     provider = "signup",
     token?: string,
-    pictureCode?: string[]
+    pictureCode?: string[],
+    firebaseUid?: string
   ) => {
     let resolvedName = name?.trim();
     if (!resolvedName && emailOrPhone) {
-      const raw = emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] : emailOrPhone;
+      const raw = (emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] : emailOrPhone) || "";
       const parts = raw.split(/[._-]/).filter(Boolean);
       resolvedName = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
     }
@@ -500,7 +620,13 @@ export function useUserStore() {
     if (existingIndex >= 0) {
       updatedAccounts = currentAccounts.map((a, idx) =>
         idx === existingIndex
-          ? { ...a, name: resolvedName, age, avatar, pictureCode: pictureCode || a.pictureCode }
+          ? {
+              ...a,
+              name: resolvedName,
+              age,
+              avatar,
+              ...(pictureCode ? { pictureCode } : {}),
+            }
           : a
       );
     } else {
@@ -513,21 +639,23 @@ export function useUserStore() {
           avatar,
           age: age || "11",
           provider,
-          pictureCode,
+          ...(pictureCode ? { pictureCode } : {}),
           createdAt: new Date().toISOString(),
         },
       ];
     }
 
+    const authUpdate: LetterboxState["auth"] = {
+      isLoggedIn: true,
+      email: emailOrPhone,
+      provider,
+    };
+    if (token) authUpdate.token = token;
+
     globalState = {
       ...globalState,
       registeredAccounts: updatedAccounts,
-      auth: {
-        isLoggedIn: true,
-        email: emailOrPhone,
-        provider,
-        token,
-      },
+      auth: authUpdate,
       user: {
         ...globalState.user,
         name: resolvedName,
@@ -541,17 +669,37 @@ export function useUserStore() {
     emitChange();
     playSuccess(globalState.settings.soundEnabled);
     triggerConfetti();
+
+    if (firebaseUid || emailOrPhone.includes("@")) {
+      syncWithBackend(
+        api.socialLogin({
+          provider: provider || "email",
+          email: emailOrPhone,
+          username: resolvedName,
+          ...(avatar ? { avatar } : {}),
+          ...(age ? { age } : {}),
+          ...(firebaseUid ? { firebaseUid } : {}),
+        })
+      );
+      if (firebaseUid) {
+        syncWithBackend(
+          api.createAccount({
+            emailOrPhone: emailOrPhone.trim(),
+            name: resolvedName,
+            avatar,
+            age,
+            provider,
+            pictureCode,
+          })
+        );
+      }
+    }
   }, []);
 
   const logout = useCallback(() => {
     globalState = {
       ...globalState,
-      auth: {
-        isLoggedIn: false,
-        email: undefined,
-        provider: undefined,
-        token: undefined,
-      },
+      auth: { isLoggedIn: false },
       user: {
         ...globalState.user,
         name: "Player",
@@ -559,10 +707,11 @@ export function useUserStore() {
     };
     emitChange();
     playPop(globalState.settings.soundEnabled);
+    signOutEverywhere();
   }, []);
 
   const resetAllProgress = useCallback(() => {
-    globalState = { ...DEFAULT_STATE };
+    globalState = cloneState({ ...DEFAULT_STATE, registeredAccounts: globalState.registeredAccounts });
     emitChange();
   }, []);
 

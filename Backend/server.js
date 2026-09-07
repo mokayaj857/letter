@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const pool = require('./src/config/db'); // Imports your MySQL pool connection
+const pool = require('./src/config/db');
 require('dotenv').config();
+
+const authRoutes = require('./src/routes/authRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const gameRoutes = require('./src/routes/gameRoutes');
 
 const app = express();
 app.use(cors());
@@ -9,17 +13,20 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-// Test route
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'FinLit Kids API' });
+  res.json({ status: 'ok', service: 'LetterBox API' });
 });
 
-// Test DB Connection on Server Startup
+// Mount API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/games', gameRoutes);
+
 async function startServer() {
   try {
     const connection = await pool.getConnection();
     console.log('✅ Connected to MySQL Database!');
-    connection.release(); // Release connection back to pool
+    connection.release();
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);

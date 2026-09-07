@@ -113,7 +113,7 @@ function Login() {
       const result = await authenticateWithEmail("login", email.trim(), password);
       setLoading(false);
       if (result.success) {
-        loginWithProvider("email", result.email, result.name, result.avatar, result.token);
+        loginWithProvider("email", result.email, result.name, result.avatar, result.token, result.firebaseUid);
         toast.success(`Welcome back, ${result.name}!`);
         navigate({ to: "/" });
       }
@@ -143,7 +143,7 @@ function Login() {
 
       toast.dismiss("social-auth");
       if (result.success) {
-        loginWithProvider(result.provider, result.email, result.name, result.avatar, result.token);
+        loginWithProvider(result.provider, result.email, result.name, result.avatar, result.token, result.firebaseUid);
         toast.success(`Welcome back, ${result.name}!`);
         navigate({ to: "/" });
       } else {
@@ -219,7 +219,7 @@ function Login() {
         playSuccess(settings.soundEnabled);
         setShowPhoneModal(false);
         const finalName = user.displayName || formatNameFromEmail(user.email || phone.trim()) || "Player";
-        loginWithProvider("phone", phone.trim(), finalName);
+        loginWithProvider("phone", phone.trim(), finalName, undefined, undefined, user.uid);
         toast.success(`Welcome back, ${finalName}!`);
         navigate({ to: "/" });
       } catch (err: any) {
