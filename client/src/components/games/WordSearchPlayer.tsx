@@ -229,13 +229,12 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
                 onMouseDown={() => handleCellMouseDown(r, c)}
                 onMouseEnter={() => handleCellMouseEnter(r, c)}
                 onTouchStart={() => handleCellMouseDown(r, c)}
-                className={`flex items-center justify-center font-mono font-bold text-xs sm:text-sm rounded-lg border transition-colors cursor-pointer select-none ${
-                  selected
+                className={`flex items-center justify-center font-mono font-bold text-xs sm:text-sm rounded-lg border transition-colors cursor-pointer select-none ${selected
                     ? "bg-primary text-primary-foreground border-primary scale-95 shadow-sm font-black"
                     : isHighlighted
                       ? `${isHighlighted}`
                       : "border-transparent text-foreground/80 hover:bg-muted/50"
-                }`}
+                  }`}
               >
                 {letter}
               </div>
@@ -255,11 +254,10 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
             return (
               <span
                 key={word}
-                className={`text-xs px-2 py-0.5 rounded-lg font-medium transition-all ${
-                  isDone
+                className={`text-xs px-2 py-0.5 rounded-lg font-medium transition-all ${isDone
                     ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 line-through opacity-70 border border-emerald-300/50"
                     : "bg-card border border-border/80 text-foreground"
-                }`}
+                  }`}
               >
                 {word}
               </span>

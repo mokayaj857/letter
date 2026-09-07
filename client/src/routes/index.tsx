@@ -143,23 +143,21 @@ function GamesHub() {
 
             const card = (
               <div
-                className={`lift flex h-full flex-col rounded-3xl border-2 border-border p-4 shadow-card ${
-                  isComingSoon
+                className={`lift flex h-full flex-col rounded-3xl border-2 border-border p-4 shadow-card ${isComingSoon
                     ? "bg-card/70 border-dashed border-primary/30"
                     : !isUnlocked
                       ? "bg-muted/60"
                       : "bg-card hover:-translate-y-1 hover:shadow-float active:scale-[0.97]"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span
-                    className={`grid size-14 place-items-center rounded-2xl ${
-                      isComingSoon
+                    className={`grid size-14 place-items-center rounded-2xl ${isComingSoon
                         ? "bg-sun/20 text-sun-foreground"
                         : !isUnlocked
                           ? "bg-muted text-muted-foreground"
                           : game.tint
-                    }`}
+                      }`}
                   >
                     {!isUnlocked && !isComingSoon ? (
                       <Lock className="size-5" />

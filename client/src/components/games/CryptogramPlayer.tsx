@@ -152,11 +152,10 @@ export const CryptogramPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
                 value={currentVal}
                 disabled={isDone}
                 onChange={(e) => handleCharChange(idx, e.target.value)}
-                className={`size-11 sm:size-12 rounded-xl border-2 text-center font-mono font-black text-lg uppercase outline-none shadow-sm transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 ${
-                  isDone
+                className={`size-11 sm:size-12 rounded-xl border-2 text-center font-mono font-black text-lg uppercase outline-none shadow-sm transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 ${isDone
                     ? "border-emerald-500 bg-emerald-500/10 text-emerald-700"
                     : "border-border bg-card text-foreground"
-                }`}
+                  }`}
               />
             </div>
           );

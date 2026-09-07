@@ -143,9 +143,8 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                 Surplus Savings
               </p>
               <p
-                className={`font-display text-base font-bold ${
-                  remainingBudget >= 0 ? "text-emerald-600" : "text-rose-600"
-                }`}
+                className={`font-display text-base font-bold ${remainingBudget >= 0 ? "text-emerald-600" : "text-rose-600"
+                  }`}
               >
                 KSh {remainingBudget.toLocaleString()}
               </p>
@@ -178,11 +177,10 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                           playPop(settings.soundEnabled);
                           setSelectedItems((prev) => ({ ...prev, [cat.name]: item }));
                         }}
-                        className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all ${
-                          isSelected
+                        className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all ${isSelected
                             ? "bg-primary text-primary-foreground font-bold shadow-xs"
                             : "bg-card border border-border/70 text-foreground hover:bg-muted/40"
-                        }`}
+                          }`}
                       >
                         <span className="truncate pr-2">{item.name}</span>
                         <span className="shrink-0">KSh {item.price}</span>
@@ -215,13 +213,12 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
             return (
               <div
                 key={sc.id}
-                className={`p-3 rounded-2xl border-2 transition-all ${
-                  isRight
+                className={`p-3 rounded-2xl border-2 transition-all ${isRight
                     ? "border-emerald-500 bg-emerald-500/5"
                     : currentSelected
                       ? "border-rose-500/60 bg-rose-500/5"
                       : "border-border bg-card"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <p className="font-display text-xs font-bold text-primary-deep">{sc.customer}</p>
@@ -239,13 +236,12 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                       key={acc}
                       type="button"
                       onClick={() => handleMatcherSelect(sc.id, acc)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${
-                        currentSelected === acc
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${currentSelected === acc
                           ? acc === sc.correctAccount
                             ? "bg-emerald-600 border-emerald-600 text-white font-bold"
                             : "bg-rose-600 border-rose-600 text-white font-bold"
                           : "bg-secondary/70 border-border text-foreground hover:border-primary/50"
-                      }`}
+                        }`}
                     >
                       {acc}
                     </button>
@@ -293,11 +289,10 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => handleWyrChoice(sc.id, "A")}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${
-                      picked === "A"
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${picked === "A"
                         ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs"
                         : "border-border bg-secondary/50 text-foreground hover:bg-muted/40"
-                    }`}
+                      }`}
                   >
                     <strong>A.</strong> {sc.optionA}
                   </button>
@@ -305,11 +300,10 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => handleWyrChoice(sc.id, "B")}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${
-                      picked === "B"
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${picked === "B"
                         ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs"
                         : "border-border bg-secondary/50 text-foreground hover:bg-muted/40"
-                    }`}
+                      }`}
                   >
                     <strong>B.</strong> {sc.optionB}
                   </button>
@@ -362,11 +356,10 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                     playPop(settings.soundEnabled);
                     setSelectedPackage(opt.id);
                   }}
-                  className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    isSelected
+                  className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected
                       ? "border-primary bg-card shadow-sm"
                       : "border-border bg-card/60 hover:bg-card"
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-between items-center">
                     <p className="font-display text-xs font-bold text-foreground">{opt.package}</p>
@@ -418,18 +411,16 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                   key={idx}
                   type="button"
                   onClick={() => togglePledge(idx)}
-                  className={`w-full flex items-start gap-2.5 p-3 rounded-2xl border-2 text-left text-xs transition-all ${
-                    isChecked
+                  className={`w-full flex items-start gap-2.5 p-3 rounded-2xl border-2 text-left text-xs transition-all ${isChecked
                       ? "border-emerald-500 bg-emerald-500/10 text-foreground font-semibold"
                       : "border-border bg-card text-muted-foreground"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`size-5 mt-0.5 rounded-md grid place-items-center shrink-0 border ${
-                      isChecked
+                    className={`size-5 mt-0.5 rounded-md grid place-items-center shrink-0 border ${isChecked
                         ? "bg-emerald-600 border-emerald-600 text-white"
                         : "border-muted-foreground/40 bg-muted"
-                    }`}
+                      }`}
                   >
                     {isChecked && <Check className="size-3.5" strokeWidth={3} />}
                   </span>

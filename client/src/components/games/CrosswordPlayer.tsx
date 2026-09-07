@@ -174,9 +174,8 @@ export const CrosswordPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }
                   maxLength={1}
                   value={currentVal}
                   onChange={(e) => handleInputChange(r, c, e.target.value)}
-                  className={`w-full h-full text-center font-mono font-black text-sm uppercase bg-transparent outline-none ${
-                    isCorrect && currentVal ? "text-emerald-600 font-black" : "text-foreground"
-                  }`}
+                  className={`w-full h-full text-center font-mono font-black text-sm uppercase bg-transparent outline-none ${isCorrect && currentVal ? "text-emerald-600 font-black" : "text-foreground"
+                    }`}
                 />
               </div>
             );
@@ -196,11 +195,10 @@ export const CrosswordPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }
                 key={c.number}
                 type="button"
                 onClick={() => setActiveClue(c)}
-                className={`w-full text-left p-1 rounded-lg transition-colors ${
-                  activeClue?.number === c.number && activeClue?.direction === "across"
+                className={`w-full text-left p-1 rounded-lg transition-colors ${activeClue?.number === c.number && activeClue?.direction === "across"
                     ? "bg-primary text-primary-foreground font-bold"
                     : "text-foreground hover:bg-card"
-                }`}
+                  }`}
               >
                 <strong>{c.number}.</strong> {c.clue}
               </button>
@@ -218,11 +216,10 @@ export const CrosswordPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }
                 key={c.number}
                 type="button"
                 onClick={() => setActiveClue(c)}
-                className={`w-full text-left p-1 rounded-lg transition-colors ${
-                  activeClue?.number === c.number && activeClue?.direction === "down"
+                className={`w-full text-left p-1 rounded-lg transition-colors ${activeClue?.number === c.number && activeClue?.direction === "down"
                     ? "bg-primary text-primary-foreground font-bold"
                     : "text-foreground hover:bg-card"
-                }`}
+                  }`}
               >
                 <strong>{c.number}.</strong> {c.clue}
               </button>
