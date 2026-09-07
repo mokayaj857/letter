@@ -19,6 +19,12 @@ import {
   Sliders,
   Award,
   Radio,
+  Play,
+  Pause,
+  SkipForward,
+  Headphones,
+  Sparkles,
+  Lock,
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
@@ -26,7 +32,21 @@ import { avatars, avatarList, type AvatarKey } from "@/assets/icons";
 import { useUserStore } from "../lib/userStore";
 import { Coin } from "@/components/Coin";
 import { toast } from "sonner";
-import { playPop, playSuccess, playError, playCoin, BGM_TRACKS, getCurrentBgmTrack } from "../lib/audio";
+import {
+  playPop,
+  playSuccess,
+  playError,
+  playCoin,
+  BGM_TRACKS,
+  getCurrentBgmTrack,
+  isBackgroundMusicPlaying,
+  startBackgroundMusic,
+  stopBackgroundMusic,
+  nextBgmTrack,
+  onPlaybackChange,
+  onTrackChange,
+} from "../lib/audio";
+import { SoundStudioModal } from "@/components/SoundStudioModal";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -101,6 +121,19 @@ function Profile() {
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [showRemindersModal, setShowRemindersModal] = useState(false);
   const [selectedReminderTime, setSelectedReminderTime] = useState("4:00 PM");
+  const [isPlayingBgm, setIsPlayingBgm] = useState(isBackgroundMusicPlaying());
+  const [currentBgm, setCurrentBgm] = useState(getCurrentBgmTrack());
+
+  useEffect(() => {
+    setIsPlayingBgm(isBackgroundMusicPlaying());
+    setCurrentBgm(getCurrentBgmTrack());
+    const unsubPlay = onPlaybackChange((p) => setIsPlayingBgm(p));
+    const unsubTrack = onTrackChange((t) => setCurrentBgm(t));
+    return () => {
+      unsubPlay();
+      unsubTrack();
+    };
+  }, []);
 
   const [showParentModal, setShowParentModal] = useState(false);
   const [parentUnlocked, setParentUnlocked] = useState(false);
@@ -115,11 +148,7 @@ function Profile() {
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleAvatarSelect = (key: AvatarKey) => {
-    setAvatar(key);
-    playCoin(settings.soundEnabled);
-    toast.success(`Active character updated to ${key}`);
-  };
+
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,37 +249,35 @@ function Profile() {
           </div>
         </div>
 
-        {/* Interactive Avatar Selection */}
-        <div className="mt-8 flex items-baseline justify-between">
-          <h2 className="font-display text-xl font-bold text-primary-deep">
-            Pick your avatar
-          </h2>
-          <span className="text-xs font-bold text-muted-foreground capitalize">
-            {user.avatar} active
-          </span>
-        </div>
-
-        <div className="mt-3 grid grid-cols-4 gap-3">
+        {/* Avatar Picker */}
+        <h2 className="mt-8 font-display text-xl font-bold text-primary-deep">
+          Pick your avatar
+        </h2>
+        <div className="mt-3 grid grid-cols-4 gap-2.5">
           {avatarList.map(([key, src], i) => {
             const isSelected = user.avatar === key;
             return (
               <button
                 key={key}
                 type="button"
-                aria-label={`Select ${key}`}
-                onClick={() => handleAvatarSelect(key)}
-                className={`press relative grid aspect-square animate-pop-in place-items-center rounded-3xl border-2 p-2 shadow-card hover:-translate-y-1 active:scale-95 transition-all ${
-                  isSelected ? "border-primary bg-primary-soft ring-2 ring-primary/40" : "border-border bg-card"
+                aria-label={`Select ${key} avatar`}
+                onClick={() => {
+                  setAvatar(key);
+                  playPop(settings.soundEnabled);
+                }}
+                className={`press relative flex aspect-square animate-pop-in items-center justify-center rounded-3xl border-2 p-2 shadow-card hover:-translate-y-1 active:scale-95 transition-all ${
+                  isSelected
+                    ? "border-primary bg-primary-soft ring-2 ring-primary/40"
+                    : "border-border bg-card"
                 }`}
-                style={{ animationDelay: `${i * 55}ms` }}
+                style={{ animationDelay: `${i * 45}ms` }}
               >
                 <img
                   src={src}
-                  alt=""
-                  aria-hidden
+                  alt={`${key} avatar`}
                   loading="lazy"
-                  width={384}
-                  height={384}
+                  width={128}
+                  height={128}
                   className="size-full object-contain"
                 />
                 {isSelected && (
@@ -269,40 +296,155 @@ function Profile() {
         </h2>
 
         <div className="mt-3 space-y-3">
-          {/* Sounds & Music Card */}
-          <button
-            type="button"
-            onClick={() => {
-              playPop(settings.soundEnabled);
-              setShowAudioModal(true);
-            }}
-            className="press flex w-full items-center justify-between rounded-3xl border-2 border-border bg-card p-4 shadow-card hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none"
-          >
-            <div className="flex items-center gap-3.5">
-              <span className="grid size-11 place-items-center rounded-2xl bg-sun text-sun-foreground">
-                {settings.soundEnabled && (settings.musicEnabled || (settings.soundVolume ?? 80) > 0) ? (
-                  <Volume2 className="size-5" strokeWidth={2.4} />
-                ) : (
-                  <VolumeX className="size-5" strokeWidth={2.4} />
+          {/* Rich Letterbox Sound Studio Card */}
+          <div className="rounded-3xl border-2 border-border bg-card p-4 shadow-card hover:-translate-y-0.5 transition-all overflow-hidden relative">
+            {/* Ambient glowing aura when playing */}
+            {isPlayingBgm && (
+              <div className="absolute -top-12 -right-12 size-36 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
+            )}
+
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  playPop(settings.soundEnabled);
+                  setShowAudioModal(true);
+                }}
+                className="flex items-center gap-3.5 text-left flex-1 min-w-0 group"
+              >
+                {/* Animated Mini Vinyl Disc / Sound Icon */}
+                <div className="relative size-11 sm:size-12 shrink-0">
+                  <div
+                    className={`size-full rounded-2xl flex items-center justify-center transition-all ${
+                      settings.soundEnabled && (settings.musicEnabled || (settings.soundVolume ?? 80) > 0)
+                        ? "bg-gradient-to-tr from-sun via-amber-400 to-yellow-300 text-sun-foreground shadow-sm"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {isPlayingBgm ? (
+                      <Headphones className="size-5 sm:size-6 animate-pulse" strokeWidth={2.4} />
+                    ) : settings.soundEnabled ? (
+                      <Volume2 className="size-5 sm:size-6" strokeWidth={2.4} />
+                    ) : (
+                      <VolumeX className="size-5 sm:size-6" strokeWidth={2.4} />
+                    )}
+                  </div>
+                  {isPlayingBgm && (
+                    <span className="absolute -top-1 -right-1 flex size-3">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex size-3 rounded-full bg-primary" />
+                    </span>
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-display font-bold text-foreground text-sm sm:text-base group-hover:text-primary transition-colors">
+                      Music & Sounds
+                    </p>
+                    {isPlayingBgm && (
+                      <span className="rounded-full bg-primary/15 px-1.5 py-0.2 text-[9px] font-display font-bold text-primary-deep flex items-center gap-1">
+                        <span className="size-1 rounded-full bg-primary animate-ping" />
+                        Live
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-semibold text-muted-foreground truncate">
+                    {isPlayingBgm
+                      ? `Playing: ${currentBgm.title}`
+                      : settings.soundEnabled
+                        ? `BGM: ${settings.musicEnabled ? `${settings.musicVolume ?? 70}%` : "Off"} · SFX: ${settings.soundVolume ?? 80}%`
+                        : "Audio Muted"}
+                  </p>
+                </div>
+              </button>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Inline Quick Play / Pause Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playPop(settings.soundEnabled);
+                    if (isPlayingBgm) {
+                      stopBackgroundMusic();
+                    } else {
+                      if (!settings.musicEnabled) toggleMusic();
+                      if (!settings.soundEnabled) toggleSound();
+                      startBackgroundMusic(true, true, settings.musicVolume ?? 70);
+                    }
+                  }}
+                  title={isPlayingBgm ? "Pause Music" : "Play Music"}
+                  className={`press grid size-9 place-items-center rounded-2xl border-2 transition-all shadow-sm ${
+                    isPlayingBgm
+                      ? "border-primary/40 bg-primary-soft text-primary-deep hover:bg-primary/20"
+                      : "border-border bg-card text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {isPlayingBgm ? (
+                    <Pause className="size-4" strokeWidth={2.8} />
+                  ) : (
+                    <Play className="size-4 fill-current ml-0.5" />
+                  )}
+                </button>
+
+                {/* Inline Quick Skip Button */}
+                {isPlayingBgm && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playPop(settings.soundEnabled);
+                      nextBgmTrack();
+                    }}
+                    title="Next Track"
+                    className="press grid size-9 place-items-center rounded-2xl border-2 border-border bg-card text-foreground hover:bg-muted shadow-sm"
+                  >
+                    <SkipForward className="size-4" strokeWidth={2.5} />
+                  </button>
                 )}
-              </span>
-              <div className="text-left">
-                <p className="font-display font-bold text-foreground">Music & sounds</p>
-                <p className="text-xs font-semibold text-muted-foreground">
-                  {settings.soundEnabled
-                    ? `BGM: ${settings.musicEnabled ? `${settings.musicVolume ?? 70}%` : "Off"} · SFX: ${settings.soundVolume ?? 80}%`
-                    : "Audio muted"}
-                </p>
+
+                {/* Open Sound Studio Action Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playPop(settings.soundEnabled);
+                    setShowAudioModal(true);
+                  }}
+                  className="press flex items-center gap-1 rounded-2xl bg-sun/20 border border-sun/40 px-2.5 py-1.5 font-display text-[11px] font-bold text-sun-foreground hover:bg-sun/30"
+                >
+                  <span>Studio</span>
+                  <ChevronRight className="size-3.5" />
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-sun/20 px-2.5 py-0.5 font-display text-[11px] font-bold text-sun-foreground">
-                Adjust
-              </span>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </div>
-          </button>
+            {/* Active Mini Visualizer Waveform Bar if playing */}
+            {isPlayingBgm && (
+              <div
+                onClick={() => {
+                  playPop(settings.soundEnabled);
+                  setShowAudioModal(true);
+                }}
+                className="mt-3 pt-2.5 border-t border-border/60 flex items-center justify-between text-[11px] cursor-pointer hover:bg-muted/20 -mx-4 -mb-4 px-4 py-2 transition-colors"
+              >
+                <div className="flex items-center gap-2 text-primary-deep font-semibold">
+                  <span className="flex items-center gap-0.5 h-3">
+                    <span className="w-0.5 h-2 bg-primary rounded-full animate-eq-1" />
+                    <span className="w-0.5 h-3 bg-primary rounded-full animate-eq-2" />
+                    <span className="w-0.5 h-1.5 bg-primary rounded-full animate-eq-3" />
+                    <span className="w-0.5 h-2.5 bg-primary rounded-full animate-eq-4" />
+                  </span>
+                  <span className="truncate text-[10px] sm:text-xs">
+                    {currentBgm.mood} · {currentBgm.bpm} BPM
+                  </span>
+                </div>
+                <span className="text-muted-foreground text-[10px] font-bold hover:text-primary transition-colors flex items-center gap-0.5">
+                  Full Studio <ChevronRight className="size-3" />
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Reminders Card */}
           <button
@@ -565,236 +707,11 @@ function Profile() {
         </div>
       )}
 
-      {/* MODAL: Music & Sounds Adjustment */}
-      {showAudioModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="grid size-9 place-items-center rounded-2xl bg-sun text-sun-foreground">
-                  <Music className="size-5" />
-                </span>
-                <h2 className="font-display text-xl font-bold text-primary-deep">
-                  Music & Sounds
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  playPop(settings.soundEnabled);
-                  setShowAudioModal(false);
-                }}
-                className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="mt-5 space-y-4">
-              {/* Background Music Section */}
-              <div className="rounded-3xl border-2 border-border bg-muted/20 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-8 place-items-center rounded-xl bg-sun/30 text-sun-foreground">
-                      <Music className="size-4" />
-                    </span>
-                    <div>
-                      <p className="font-display text-sm font-bold text-foreground">
-                        Game Background Music
-                      </p>
-                      <p className="text-[11px] font-semibold text-muted-foreground">
-                        Plays calm tunes during quests
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={settings.musicEnabled}
-                    onClick={() => toggleMusic()}
-                    className={`press relative h-7 w-12 rounded-full border-2 border-border p-0.5 transition-colors ${
-                      settings.musicEnabled ? "bg-primary" : "bg-muted"
-                    }`}
-                  >
-                    <div
-                      className={`size-5 rounded-full bg-card shadow transition-transform duration-200 ${
-                        settings.musicEnabled ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Music Volume Slider */}
-                <div className="mt-3.5 pt-3 border-t border-border/60">
-                  <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-1.5">
-                    <span>Music Volume</span>
-                    <span className="text-primary-deep font-display font-bold">{settings.musicVolume ?? 70}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={settings.musicVolume ?? 70}
-                    disabled={!settings.musicEnabled}
-                    onChange={(e) => setMusicVolume(Number(e.target.value))}
-                    className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer disabled:opacity-40"
-                  />
-                </div>
-              </div>
-
-              {/* Soundtrack Theme Playlist Selection */}
-              <div className="rounded-3xl border-2 border-border bg-muted/20 p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Radio className="size-4 text-primary-deep" />
-                    <p className="font-display text-sm font-bold text-foreground">
-                      Soundtrack Playlist
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-primary/20 px-2 py-0.5 font-display text-[10px] font-bold text-primary-deep">
-                    4 Looping Themes
-                  </span>
-                </div>
-
-                <p className="text-[11px] font-semibold text-muted-foreground mb-3">
-                  Choose a favorite sound theme or let all 4 loop in sequence:
-                </p>
-
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBgmTrack("auto");
-                      toast.success("Auto-looping all 4 soundtracks in sequence!");
-                    }}
-                    className={`press flex w-full items-center justify-between rounded-2xl border-2 p-3 text-left transition-all ${
-                      (!settings.bgmTrack || settings.bgmTrack === "auto")
-                        ? "border-primary bg-primary-soft text-primary-deep shadow-sm"
-                        : "border-border bg-card hover:bg-muted/40 text-foreground"
-                    }`}
-                  >
-                    <div>
-                      <p className="font-display text-xs font-bold">✨ Auto-Loop Playlist (Default)</p>
-                      <p className="text-[10px] text-muted-foreground">Plays all tracks in a continuous variety loop</p>
-                    </div>
-                    {(!settings.bgmTrack || settings.bgmTrack === "auto") && (
-                      <Check className="size-4 text-primary" strokeWidth={3} />
-                    )}
-                  </button>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {BGM_TRACKS.map((t, idx) => {
-                      const isSelected = settings.bgmTrack === t.id;
-                      return (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => {
-                            setBgmTrack(t.id);
-                            toast.success(`Active theme: ${t.title}`);
-                          }}
-                          className={`press flex flex-col justify-between rounded-2xl border-2 p-2.5 text-left transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary-soft text-primary-deep shadow-sm"
-                              : "border-border bg-card hover:bg-muted/40 text-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-display text-[11px] font-bold truncate">
-                              #{idx + 1} {t.title.split(" ")[0]}
-                            </span>
-                            {isSelected && <Check className="size-3 text-primary" strokeWidth={3} />}
-                          </div>
-                          <p className="text-[9px] font-semibold text-muted-foreground truncate mt-0.5">
-                            {t.mood}
-                          </p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Sound Effects Section */}
-              <div className="rounded-3xl border-2 border-border bg-muted/20 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-8 place-items-center rounded-xl bg-leaf/40 text-leaf-foreground">
-                      <Volume2 className="size-4" />
-                    </span>
-                    <div>
-                      <p className="font-display text-sm font-bold text-foreground">
-                        Sound Effects
-                      </p>
-                      <p className="text-[11px] font-semibold text-muted-foreground">
-                        Coins, pops, clicks & fanfare
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={settings.soundEnabled}
-                    onClick={() => toggleSound()}
-                    className={`press relative h-7 w-12 rounded-full border-2 border-border p-0.5 transition-colors ${
-                      settings.soundEnabled ? "bg-primary" : "bg-muted"
-                    }`}
-                  >
-                    <div
-                      className={`size-5 rounded-full bg-card shadow transition-transform duration-200 ${
-                        settings.soundEnabled ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* SFX Volume Slider */}
-                <div className="mt-3.5 pt-3 border-t border-border/60">
-                  <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-1.5">
-                    <span>Effects Volume</span>
-                    <span className="text-primary-deep font-display font-bold">{settings.soundVolume ?? 80}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={settings.soundVolume ?? 80}
-                    disabled={!settings.soundEnabled}
-                    onChange={(e) => setSoundVolume(Number(e.target.value))}
-                    className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer disabled:opacity-40"
-                  />
-                </div>
-              </div>
-
-              {/* Test Sound Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  playCoin(true);
-                  toast.success("Coin sound played!");
-                }}
-                className="press flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card py-2.5 font-display text-xs font-bold text-primary-deep shadow-sm hover:bg-muted/40"
-              >
-                <Coin className="size-4" />
-                <span>Test Sound Effects</span>
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                playPop(settings.soundEnabled);
-                setShowAudioModal(false);
-              }}
-              className="press mt-5 w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      {/* MODAL: Comprehensive Letterbox Sound Studio */}
+      <SoundStudioModal
+        isOpen={showAudioModal}
+        onClose={() => setShowAudioModal(false)}
+      />
 
       {/* MODAL: Reminders */}
       {showRemindersModal && (

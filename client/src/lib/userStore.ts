@@ -4,9 +4,11 @@ import {
   playCoin,
   playPop,
   playSuccess,
+  playError,
   setMusicVolume as applyMusicVolume,
   setSoundVolume as applySoundVolume,
   setSelectedTrackPreference,
+  setLofiMode as applyLofiMode,
   stopBackgroundMusic,
 } from "./audio";
 import { triggerConfetti } from "./confetti";
@@ -20,17 +22,19 @@ export interface UserProfile {
   streak: number;
   xp: number;
   equippedItem: string | null;
-  age?: string;
-  email?: string;
-  provider?: string;
+  age?: string | undefined;
+  email?: string | undefined;
+  provider?: string | undefined;
 }
 
 export interface UserSettings {
   soundEnabled: boolean;
   musicEnabled: boolean;
-  musicVolume?: number; // 0 to 100, default 70
-  soundVolume?: number; // 0 to 100, default 80
-  bgmTrack?: string; // "auto" or specific track id
+  musicVolume?: number | undefined; // 0 to 100, default 70
+  soundVolume?: number | undefined; // 0 to 100, default 80
+  bgmTrack?: string | undefined; // "auto" or specific track id
+  lofiMode?: boolean | undefined;
+  hapticClick?: boolean | undefined;
   remindersEnabled: boolean;
   streakFreeze: boolean;
   parentPin: string;
@@ -49,7 +53,7 @@ export interface UserBadge {
   name: string;
   artKey: string;
   got: boolean;
-  dateUnlocked?: string;
+  dateUnlocked?: string | undefined;
   desc: string;
   xpValue: number;
 }
@@ -59,9 +63,9 @@ export interface RegisteredAccount {
   emailOrPhone: string;
   name: string;
   avatar: AvatarKey;
-  age?: string;
+  age?: string | undefined;
   provider: string;
-  pictureCode?: string[];
+  pictureCode?: string[] | undefined;
   createdAt: string;
 }
 
@@ -80,9 +84,9 @@ export interface LetterboxState {
   };
   auth: {
     isLoggedIn: boolean;
-    email?: string;
-    provider?: string;
-    token?: string;
+    email?: string | undefined;
+    provider?: string | undefined;
+    token?: string | undefined;
   };
   registeredAccounts: RegisteredAccount[];
 }
@@ -95,7 +99,7 @@ const DEFAULT_STATE: LetterboxState = {
     avatar: "lion",
     level: 1,
     title: "Beginner Saver",
-    coins: 100,
+    coins: 150,
     streak: 1,
     xp: 250,
     equippedItem: null,
@@ -106,6 +110,8 @@ const DEFAULT_STATE: LetterboxState = {
     musicVolume: 70,
     soundVolume: 80,
     bgmTrack: "auto",
+    lofiMode: false,
+    hapticClick: true,
     remindersEnabled: true,
     streakFreeze: true,
     parentPin: "1234",
@@ -169,6 +175,8 @@ function loadInitialState(): LetterboxState {
           musicVolume: parsed.settings?.musicVolume ?? 70,
           soundVolume: parsed.settings?.soundVolume ?? 80,
           bgmTrack: parsed.settings?.bgmTrack ?? "auto",
+          lofiMode: parsed.settings?.lofiMode ?? false,
+          hapticClick: parsed.settings?.hapticClick ?? true,
         },
         goal: { ...DEFAULT_STATE.goal, ...(parsed.goal || {}) },
         registeredAccounts: parsed.registeredAccounts || [],
@@ -176,6 +184,7 @@ function loadInitialState(): LetterboxState {
       applyMusicVolume(loaded.settings.musicVolume ?? 70);
       applySoundVolume(loaded.settings.soundVolume ?? 80);
       setSelectedTrackPreference(loaded.settings.bgmTrack || "auto");
+      applyLofiMode(loaded.settings.lofiMode ?? false);
       return loaded;
     }
   } catch (e) {
@@ -318,6 +327,25 @@ export function useUserStore() {
     playPop(globalState.settings.soundEnabled);
   }, []);
 
+  const setLofiMode = useCallback((enabled: boolean) => {
+    globalState = {
+      ...globalState,
+      settings: { ...globalState.settings, lofiMode: enabled },
+    };
+    emitChange();
+    applyLofiMode(enabled);
+    playPop(globalState.settings.soundEnabled);
+  }, []);
+
+  const setHapticClick = useCallback((enabled: boolean) => {
+    globalState = {
+      ...globalState,
+      settings: { ...globalState.settings, hapticClick: enabled },
+    };
+    emitChange();
+    playPop(globalState.settings.soundEnabled);
+  }, []);
+
   const toggleReminders = useCallback(() => {
     globalState = {
       ...globalState,
@@ -370,15 +398,14 @@ export function useUserStore() {
   }, []);
 
   const buyShopItem = useCallback((itemId: string, cost: number) => {
-    if (globalState.user.coins < cost || globalState.ownedItems.includes(itemId)) {
-      return false;
-    }
+    if (globalState.user.coins < cost) return false;
+    if (globalState.ownedItems.includes(itemId)) return false;
+
     globalState = {
       ...globalState,
       user: {
         ...globalState.user,
         coins: globalState.user.coins - cost,
-        equippedItem: itemId,
       },
       ownedItems: [...globalState.ownedItems, itemId],
     };
@@ -389,49 +416,54 @@ export function useUserStore() {
   }, []);
 
   const completeLevel = useCallback((gameId: string, levelIndex: number, xpReward: number, coinReward: number) => {
-    const currentDone = globalState.gameProgress[gameId] || 0;
-    const newDone = Math.max(currentDone, levelIndex + 1);
+    const currentProgress = globalState.gameProgress[gameId] ?? 0;
+    const newProgress = Math.max(currentProgress, levelIndex + 1);
+
+    const newXp = globalState.user.xp + xpReward;
+    const newCoins = globalState.user.coins + coinReward;
+    const newLevel = Math.floor(newXp / 350) + 1;
+    const leveledUp = newLevel > globalState.user.level;
 
     globalState = {
       ...globalState,
       user: {
         ...globalState.user,
-        xp: globalState.user.xp + xpReward,
-        coins: globalState.user.coins + coinReward,
-        streak: globalState.user.streak + 1,
+        xp: newXp,
+        coins: newCoins,
+        level: Math.max(globalState.user.level, newLevel),
       },
       gameProgress: {
         ...globalState.gameProgress,
-        [gameId]: newDone,
+        [gameId]: newProgress,
       },
     };
     emitChange();
+
     playSuccess(globalState.settings.soundEnabled);
-    triggerConfetti();
+    if (leveledUp) {
+      triggerConfetti();
+    }
   }, []);
 
   const isAccountRegistered = useCallback((emailOrPhone: string): boolean => {
     if (!emailOrPhone) return false;
     const norm = emailOrPhone.trim().toLowerCase();
-    return (globalState.registeredAccounts || []).some(
-      (acc) => acc.emailOrPhone.trim().toLowerCase() === norm
-    );
+    const accounts = globalState.registeredAccounts || [];
+    return accounts.some((a) => a.emailOrPhone.trim().toLowerCase() === norm);
   }, []);
 
-  const getRegisteredAccount = useCallback((identifier: string): RegisteredAccount | undefined => {
-    if (!identifier) return undefined;
-    const norm = identifier.trim().toLowerCase();
-    return (globalState.registeredAccounts || []).find(
-      (acc) => acc.emailOrPhone.trim().toLowerCase() === norm
-    );
+  const getRegisteredAccount = useCallback((emailOrPhone: string): RegisteredAccount | null => {
+    if (!emailOrPhone) return null;
+    const norm = emailOrPhone.trim().toLowerCase();
+    const accounts = globalState.registeredAccounts || [];
+    return accounts.find((a) => a.emailOrPhone.trim().toLowerCase() === norm) || null;
   }, []);
 
-  const findAccountByPictureCode = useCallback((code: string[]): RegisteredAccount | undefined => {
-    if (!code || code.length < 3) return undefined;
-    const target = code.join("-");
-    return (globalState.registeredAccounts || []).find(
-      (acc) => acc.pictureCode && acc.pictureCode.join("-") === target
-    );
+  const findAccountByPictureCode = useCallback((pictureCode: string[]): RegisteredAccount | null => {
+    if (!pictureCode || pictureCode.length === 0) return null;
+    const target = pictureCode.join(",");
+    const accounts = globalState.registeredAccounts || [];
+    return accounts.find((a) => (a.pictureCode || []).join(",") === target) || null;
   }, []);
 
   const loginWithProvider = useCallback((
@@ -457,7 +489,7 @@ export function useUserStore() {
         isLoggedIn: true,
         email: email || "",
         provider,
-        token,
+        token: token ?? undefined,
       },
       user: {
         ...globalState.user,
@@ -482,7 +514,7 @@ export function useUserStore() {
   ) => {
     let resolvedName = name?.trim();
     if (!resolvedName && emailOrPhone) {
-      const raw = emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] : emailOrPhone;
+      const raw = emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] ?? "" : emailOrPhone;
       const parts = raw.split(/[._-]/).filter(Boolean);
       resolvedName = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
     }
@@ -513,7 +545,7 @@ export function useUserStore() {
           avatar,
           age: age || "11",
           provider,
-          pictureCode,
+          pictureCode: pictureCode ?? undefined,
           createdAt: new Date().toISOString(),
         },
       ];
@@ -526,7 +558,7 @@ export function useUserStore() {
         isLoggedIn: true,
         email: emailOrPhone,
         provider,
-        token,
+        token: token ?? undefined,
       },
       user: {
         ...globalState.user,
@@ -587,6 +619,8 @@ export function useUserStore() {
     setMusicVolume,
     setSoundVolume,
     setBgmTrack,
+    setLofiMode,
+    setHapticClick,
     toggleReminders,
     updateSettings,
     depositToGoal,

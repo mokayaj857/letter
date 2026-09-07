@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, Link, notFound, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Check,
@@ -27,6 +27,11 @@ import {
   unlockAudio,
 } from "../lib/audio";
 import { triggerConfetti } from "../lib/confetti";
+import { WordSearchPlayer } from "@/components/games/WordSearchPlayer";
+import { CrosswordPlayer } from "@/components/games/CrosswordPlayer";
+import { QuizPlayer } from "@/components/games/QuizPlayer";
+import { CryptogramPlayer } from "@/components/games/CryptogramPlayer";
+import { SpecialActivitiesPlayer } from "@/components/games/SpecialActivitiesPlayer";
 
 export const Route = createFileRoute("/journey/$gameId")({
   loader: ({ params }) => {
@@ -65,6 +70,10 @@ const kindLabel: Record<Level["kind"], string> = {
   quiz: "Quiz",
   sim: "Simulation",
   boss: "Boss battle",
+  wordsearch: "Word Search",
+  crossword: "Crossword",
+  cryptogram: "Cryptogram",
+  activity: "Special Activity",
 };
 
 const QUIZ_DATA = [
@@ -137,6 +146,7 @@ function Journey() {
   const [simNeeds, setSimNeeds] = useState<string[]>([]);
   const [simWants, setSimWants] = useState<string[]>([]);
   const [victoryModal, setVictoryModal] = useState(false);
+  const [earnedRewards, setEarnedRewards] = useState({ xp: 50, coins: 20 });
 
   const activeLevel = playingLevelIndex !== null ? game.levels[playingLevelIndex] : null;
 
@@ -163,11 +173,12 @@ function Journey() {
     setVictoryModal(false);
   };
 
-  const handleFinishLevel = () => {
+  const handleFinishLevel = (customXp?: number, customCoins?: number) => {
     if (playingLevelIndex === null) return;
-    const xpReward = activeLevel?.xp || 50;
-    const coinReward = activeLevel?.kind === "boss" ? 40 : 20;
+    const xpReward = customXp || activeLevel?.xp || 50;
+    const coinReward = customCoins || (activeLevel?.kind === "boss" ? 40 : 20);
 
+    setEarnedRewards({ xp: xpReward, coins: coinReward });
     completeLevel(game.id, playingLevelIndex, xpReward, coinReward);
     setVictoryModal(true);
     playVictory(settings.soundEnabled);
@@ -319,28 +330,59 @@ function Journey() {
 
       {/* Playable Level Runner Modal */}
       {playingLevelIndex !== null && activeLevel && !victoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-primary-deep">
-                  Level {playingLevelIndex + 1} · {kindLabel[activeLevel.kind]}
-                </p>
-                <h2 className="font-display text-lg font-bold text-foreground truncate">
-                  {activeLevel.title}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPlayingLevelIndex(null)}
-                className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-3 sm:p-5 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm sm:max-w-lg max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-4 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto flex flex-col">
+            <button
+              type="button"
+              onClick={() => setPlayingLevelIndex(null)}
+              className="absolute top-4 right-4 z-10 grid size-8 place-items-center rounded-full bg-muted/80 text-muted-foreground hover:text-foreground transition-all"
+            >
+              <X className="size-4" />
+            </button>
 
-            {/* Lesson Mode */}
-            {activeLevel.kind === "lesson" && (
+            {/* Render Embedded Game Component if available */}
+            {activeLevel.gameData?.type === "wordsearch" && (
+              <WordSearchPlayer
+                puzzle={activeLevel.gameData}
+                onComplete={(xp, coins) => handleFinishLevel(xp, coins)}
+                onClose={() => setPlayingLevelIndex(null)}
+              />
+            )}
+
+            {activeLevel.gameData?.type === "crossword" && (
+              <CrosswordPlayer
+                puzzle={activeLevel.gameData}
+                onComplete={(xp, coins) => handleFinishLevel(xp, coins)}
+                onClose={() => setPlayingLevelIndex(null)}
+              />
+            )}
+
+            {activeLevel.gameData?.type === "quiz" && (
+              <QuizPlayer
+                puzzle={activeLevel.gameData}
+                onComplete={(xp, coins) => handleFinishLevel(xp, coins)}
+                onClose={() => setPlayingLevelIndex(null)}
+              />
+            )}
+
+            {activeLevel.gameData?.type === "cryptogram" && (
+              <CryptogramPlayer
+                puzzle={activeLevel.gameData}
+                onComplete={(xp, coins) => handleFinishLevel(xp, coins)}
+                onClose={() => setPlayingLevelIndex(null)}
+              />
+            )}
+
+            {activeLevel.gameData?.type === "activity" && (
+              <SpecialActivitiesPlayer
+                activity={activeLevel.gameData}
+                onComplete={(xp, coins) => handleFinishLevel(xp, coins)}
+                onClose={() => setPlayingLevelIndex(null)}
+              />
+            )}
+
+            {/* Fallback Legacy Mode if no rich gameData attached */}
+            {!activeLevel.gameData && activeLevel.kind === "lesson" && (
               <div className="mt-4 space-y-4">
                 <div className="rounded-3xl border-2 border-border bg-muted/30 p-5 text-center">
                   <h3 className="font-display text-base font-bold text-primary-deep">
@@ -385,7 +427,7 @@ function Journey() {
                 ) : (
                   <button
                     type="button"
-                    onClick={handleFinishLevel}
+                    onClick={() => handleFinishLevel()}
                     className="press w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
                   >
                     Complete Lesson (+{activeLevel.xp} XP)
@@ -394,8 +436,7 @@ function Journey() {
               </div>
             )}
 
-            {/* Quiz & Boss Battle Mode */}
-            {(activeLevel.kind === "quiz" || activeLevel.kind === "boss") && (
+            {!activeLevel.gameData && (activeLevel.kind === "quiz" || activeLevel.kind === "boss") && (
               <div className="mt-4 space-y-3">
                 {activeLevel.kind === "boss" && (
                   <div className="rounded-2xl border-2 border-border bg-muted/40 p-3">
@@ -466,8 +507,7 @@ function Journey() {
               </div>
             )}
 
-            {/* Simulation Mode */}
-            {activeLevel.kind === "sim" && (
+            {!activeLevel.gameData && activeLevel.kind === "sim" && (
               <div className="mt-4 space-y-3">
                 <p className="text-xs font-semibold text-muted-foreground">
                   Sort items into Needs vs Wants:
@@ -543,7 +583,7 @@ function Journey() {
                 {simNeeds.length + simWants.length === 3 && (
                   <button
                     type="button"
-                    onClick={handleFinishLevel}
+                    onClick={() => handleFinishLevel()}
                     className="press mt-3 w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
                   >
                     Simulation Complete (+{activeLevel.xp} XP)
@@ -557,7 +597,7 @@ function Journey() {
 
       {/* Victory Level Complete Modal */}
       {victoryModal && activeLevel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 sm:p-6 backdrop-blur-md animate-in fade-in duration-200">
           <div className="w-full max-w-sm sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto text-center">
             <h2 className="mt-2 font-display text-2xl font-bold text-primary-deep">
               Level Complete!
@@ -570,13 +610,13 @@ function Journey() {
               <div className="rounded-2xl border-2 border-border bg-secondary p-3">
                 <p className="text-[11px] font-bold text-muted-foreground">XP Earned</p>
                 <p className="mt-1 font-display text-2xl font-bold text-primary-deep">
-                  +{activeLevel.xp}
+                  +{earnedRewards.xp}
                 </p>
               </div>
               <div className="rounded-2xl border-2 border-border bg-sunny p-3">
                 <p className="text-[11px] font-bold text-sun-foreground">Coins Added</p>
                 <p className="mt-1 flex items-center justify-center gap-1 font-display text-2xl font-bold text-sun-foreground">
-                  +{activeLevel.kind === "boss" ? 40 : 20} <Coin className="size-4" />
+                  +{earnedRewards.coins} <Coin className="size-4" />
                 </p>
               </div>
             </div>
@@ -589,7 +629,7 @@ function Journey() {
               }}
               className="press w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
             >
-              Continue
+              Continue Journey
             </button>
           </div>
         </div>

@@ -18,17 +18,17 @@ export interface SocialAuthResult {
   provider: "google" | "apple" | "phone" | "email" | "picture";
   email: string;
   name: string;
-  avatar?: AvatarKey;
-  token?: string;
-  firebaseUid?: string;
+  avatar?: AvatarKey | undefined;
+  token?: string | undefined;
+  firebaseUid?: string | undefined;
 }
 
 export interface SocialSignupOptions {
-  name?: string;
-  age?: string;
-  avatar?: AvatarKey;
-  email?: string;
-  password?: string;
+  name?: string | undefined;
+  age?: string | undefined;
+  avatar?: AvatarKey | undefined;
+  email?: string | undefined;
+  password?: string | undefined;
 }
 
 // Backend API URL helper
@@ -41,9 +41,9 @@ function syncWithBackend(payload: {
   provider: string;
   email: string;
   username: string;
-  avatar?: string;
-  age?: string;
-  firebaseUid?: string;
+  avatar?: string | undefined;
+  age?: string | undefined;
+  firebaseUid?: string | undefined;
 }): void {
   try {
     fetch(`${API_BASE}/api/auth/social-login`, {

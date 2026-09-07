@@ -18,13 +18,14 @@ export function triggerConfetti(originX = 0.5, originY = 0.5, count = 50) {
     if (document.body.contains(canvas)) document.body.removeChild(canvas);
     return;
   }
+  const context: CanvasRenderingContext2D = ctx;
 
   const dpr = window.devicePixelRatio || 1;
   const width = window.innerWidth;
   const height = window.innerHeight;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
-  ctx.scale(dpr, dpr);
+  context.scale(dpr, dpr);
 
   const colors = ["#22c55e", "#eab308", "#ec4899", "#3b82f6", "#a855f7", "#f97316"];
 
@@ -71,7 +72,7 @@ export function triggerConfetti(originX = 0.5, originY = 0.5, count = 50) {
       return;
     }
 
-    ctx.clearRect(0, 0, width, height);
+    context.clearRect(0, 0, width, height);
 
     particles.forEach((p) => {
       p.x += p.vx;
@@ -81,13 +82,13 @@ export function triggerConfetti(originX = 0.5, originY = 0.5, count = 50) {
       p.rotation += p.vRotation;
       p.life = Math.max(0, 1 - elapsed / 2.0);
 
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
-      ctx.globalAlpha = p.life;
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
-      ctx.restore();
+      context.save();
+      context.translate(p.x, p.y);
+      context.rotate(p.rotation);
+      context.globalAlpha = p.life;
+      context.fillStyle = p.color;
+      context.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      context.restore();
     });
 
     requestAnimationFrame(render);

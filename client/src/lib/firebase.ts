@@ -20,13 +20,13 @@ import {
 
 // Firebase web app configuration
 export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBLGhD8MNujzDFFq0WQrwHcMKDtawtEmIU",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "letterbox-1b06d.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "letterbox-1b06d",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "letterbox-1b06d.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "407459576350",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:407459576350:web:49e016e3bdac09c2e18c0f",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-0ZJ8EDM5HM",
+  apiKey: import.meta.env["VITE_FIREBASE_API_KEY"] || "AIzaSyBLGhD8MNujzDFFq0WQrwHcMKDtawtEmIU",
+  authDomain: import.meta.env["VITE_FIREBASE_AUTH_DOMAIN"] || "letterbox-1b06d.firebaseapp.com",
+  projectId: import.meta.env["VITE_FIREBASE_PROJECT_ID"] || "letterbox-1b06d",
+  storageBucket: import.meta.env["VITE_FIREBASE_STORAGE_BUCKET"] || "letterbox-1b06d.firebasestorage.app",
+  messagingSenderId: import.meta.env["VITE_FIREBASE_MESSAGING_SENDER_ID"] || "407459576350",
+  appId: import.meta.env["VITE_FIREBASE_APP_ID"] || "1:407459576350:web:49e016e3bdac09c2e18c0f",
+  measurementId: import.meta.env["VITE_FIREBASE_MEASUREMENT_ID"] || "G-0ZJ8EDM5HM",
 };
 
 export const isFirebaseConfigured = (): boolean => {
@@ -139,8 +139,8 @@ export async function firebaseSignInWithGoogle(mode: "login" | "signup" = "login
   user: User;
   email: string;
   displayName: string;
-  token?: string;
-  isNewUser?: boolean;
+  token?: string | undefined;
+  isNewUser?: boolean | undefined;
 }> {
   const result = await signInWithPopup(auth, googleProvider);
   const info = getAdditionalUserInfo(result);
@@ -163,7 +163,7 @@ export async function firebaseSignInWithGoogle(mode: "login" | "signup" = "login
     email,
     displayName,
     token,
-    isNewUser: info?.isNewUser,
+    isNewUser: info?.isNewUser ?? undefined,
   };
 }
 
@@ -174,8 +174,8 @@ export async function firebaseSignInWithApple(mode: "login" | "signup" = "login"
   user: User;
   email: string;
   displayName: string;
-  token?: string;
-  isNewUser?: boolean;
+  token?: string | undefined;
+  isNewUser?: boolean | undefined;
 }> {
   const result = await signInWithPopup(auth, appleProvider);
   const info = getAdditionalUserInfo(result);
@@ -198,7 +198,7 @@ export async function firebaseSignInWithApple(mode: "login" | "signup" = "login"
     email,
     displayName,
     token,
-    isNewUser: info?.isNewUser,
+    isNewUser: info?.isNewUser ?? undefined,
   };
 }
 
