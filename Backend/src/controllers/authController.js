@@ -1,69 +1,68 @@
 const pool = require('../config/db');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { ensureUser, findUserByFirebaseUid, buildDashboard } = require('./userData');
 
-exports.register = async (req, res) => {
-  const { username, email, password, age } = req.body;
+/**
+ * POST /api/auth/social-login
+ * Body: { provider, email, username, avatar?, age?, firebaseUid }
+ * Upserts the user and returns the full dashboard payload.
+ */
+exports.socialLogin = async (req, res) => {
+  const { provider, email, username, avatar, age, firebaseUid } = req.body || {};
+
+  if (!firebaseUid && !email) {
+    return res.status(400).json({ success: false, message: 'firebaseUid or email is required.' });
+  }
+
   try {
-    const [existing] = await pool.execute(
-      'SELECT id FROM users WHERE email = ? OR username = ?',
-      [email, username]
-    );
-    if (existing.length > 0) {
-      return res.status(400).json({ success: false, message: 'Username or Email already exists.' });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const [result] = await pool.execute(
-      'INSERT INTO users (username, email, password_hash, age) VALUES (?, ?, ?, ?)',
-      [username, email, hashedPassword, age]
-    );
-
-    const token = jwt.sign(
-      { id: result.insertId, username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully.',
-      token,
-      user: { id: result.insertId, username, email, age }
+    const tokenData = req.tokenData || {};
+    const uid = firebaseUid || tokenData.firebaseUid;
+    const user = await ensureUser({
+      firebaseUid: uid,
+      email: email || tokenData.email,
+      username: username || tokenData.name,
+      avatar,
+      age,
+      provider: provider || 'email',
     });
+
+    const dashboard = await buildDashboard(user.id, {
+      provider,
+      token: null,
+    });
+    res.status(200).json({ success: true, data: dashboard });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
+/**
+ * GET /api/auth/dashboard
+ * Protected (Bearer token). Returns full profile state for login hydration.
+ */
+exports.dashboard = async (req, res) => {
   try {
-    const [users] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
-      return res.status(404).json({ success: false, message: 'No account found with this email. Please sign up first.' });
+    const uid = req.tokenData.firebaseUid;
+    let user = uid ? await findUserByFirebaseUid(uid) : null;
+
+    // If firebase-admin verified a token but user has no DB row yet, ensure it
+    if (!user && req.tokenData.firebaseUid) {
+      user = await ensureUser({
+        firebaseUid: uid,
+        email: req.tokenData.email,
+        username: req.tokenData.name,
+        provider: 'email',
+      });
     }
 
-    const user = users[0];
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) {
-      return res.status(400).json({ success: false, message: 'Incorrect password. Please try again.' });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-
-    res.json({
-      success: true,
-      token,
-      user: { id: user.id, username: user.username, email: user.email, age: user.age, points: user.total_points }
-    });
+    const dashboard = await buildDashboard(user.id);
+    res.status(200).json({ success: true, data: dashboard });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

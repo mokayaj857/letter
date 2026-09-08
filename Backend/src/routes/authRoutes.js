@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { register, login } = require('../controllers/authController');
+const { socialLogin, dashboard } = require('../controllers/authController');
+const authenticateToken = require('../middleware/firebaseAuth');
 
-router.post('/register', register);
-router.post('/login', login);
+// Public: upsert + return dashboard (used by client's social login sync)
+router.post('/social-login', socialLogin);
+
+// Protected: full dashboard for login hydration
+router.get('/dashboard', authenticateToken, dashboard);
 
 module.exports = router;

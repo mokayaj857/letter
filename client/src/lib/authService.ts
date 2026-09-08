@@ -54,6 +54,23 @@ function syncWithBackend(payload: {
   } catch {}
 }
 
+function makeSyncPayload(options: {
+  provider: string;
+  email: string;
+  username: string;
+  values: SocialSignupOptions | undefined;
+  firebaseUid: string;
+}) {
+  return {
+    provider: options.provider,
+    email: options.email,
+    username: options.username,
+    ...(options.values?.avatar ? { avatar: options.values.avatar } : {}),
+    ...(options.values?.age ? { age: options.values.age } : {}),
+    firebaseUid: options.firebaseUid,
+  };
+}
+
 /**
  * Authenticate with Google via Firebase
  */
@@ -73,14 +90,15 @@ export async function authenticateWithGoogle(
       formatNameFromEmail(fbResult.email);
     const finalEmail = fbResult.email;
 
-    syncWithBackend({
-      provider: "google",
-      email: finalEmail,
-      username: finalName,
-      avatar: options?.avatar,
-      age: options?.age,
-      firebaseUid: fbResult.user.uid,
-    });
+    syncWithBackend(
+      makeSyncPayload({
+        provider: "google",
+        email: finalEmail,
+        username: finalName,
+        values: options,
+        firebaseUid: fbResult.user.uid,
+      })
+    );
 
     return {
       success: true,
@@ -88,7 +106,7 @@ export async function authenticateWithGoogle(
       email: finalEmail,
       name: finalName,
       avatar: options?.avatar || "lion",
-      token: fbResult.token,
+      ...(fbResult.token ? { token: fbResult.token } : {}),
       firebaseUid: fbResult.user.uid,
     };
   } catch (error: any) {
@@ -115,14 +133,15 @@ export async function authenticateWithApple(
       formatNameFromEmail(fbResult.email);
     const finalEmail = fbResult.email;
 
-    syncWithBackend({
-      provider: "apple",
-      email: finalEmail,
-      username: finalName,
-      avatar: options?.avatar,
-      age: options?.age,
-      firebaseUid: fbResult.user.uid,
-    });
+    syncWithBackend(
+      makeSyncPayload({
+        provider: "apple",
+        email: finalEmail,
+        username: finalName,
+        values: options,
+        firebaseUid: fbResult.user.uid,
+      })
+    );
 
     return {
       success: true,
@@ -130,7 +149,7 @@ export async function authenticateWithApple(
       email: finalEmail,
       name: finalName,
       avatar: options?.avatar || "lion",
-      token: fbResult.token,
+      ...(fbResult.token ? { token: fbResult.token } : {}),
       firebaseUid: fbResult.user.uid,
     };
   } catch (error: any) {
@@ -170,14 +189,15 @@ export async function authenticateWithEmail(
       formatNameFromEmail(user.email || email.trim());
     const token = await user.getIdToken().catch(() => undefined);
 
-    syncWithBackend({
-      provider: "email",
-      email: user.email || email.trim(),
-      username: name,
-      avatar: options?.avatar,
-      age: options?.age,
-      firebaseUid: user.uid,
-    });
+    syncWithBackend(
+      makeSyncPayload({
+        provider: "email",
+        email: user.email || email.trim(),
+        username: name,
+        values: options,
+        firebaseUid: user.uid,
+      })
+    );
 
     return {
       success: true,
@@ -185,7 +205,7 @@ export async function authenticateWithEmail(
       email: user.email || email.trim(),
       name,
       avatar: options?.avatar || "lion",
-      token,
+      ...(token ? { token } : {}),
       firebaseUid: user.uid,
     };
   } catch (error: any) {

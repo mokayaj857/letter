@@ -87,20 +87,16 @@ export function Signup() {
     toast.loading(`Creating account with ${provider}...`, { id: "social-signup" });
 
     try {
+      const signupOptions = {
+        age: selectedAge,
+        avatar: selectedAvatar,
+        ...(kidName.trim() ? { name: kidName.trim() } : {}),
+        ...(parentEmail.trim() ? { email: parentEmail.trim() } : {}),
+      };
       const result =
         provLower === "google"
-          ? await authenticateWithGoogle("signup", {
-              name: kidName.trim() || undefined,
-              age: selectedAge,
-              avatar: selectedAvatar,
-              email: parentEmail.trim() || undefined,
-            })
-          : await authenticateWithApple("signup", {
-              name: kidName.trim() || undefined,
-              age: selectedAge,
-              avatar: selectedAvatar,
-              email: parentEmail.trim() || undefined,
-            });
+          ? await authenticateWithGoogle("signup", signupOptions)
+          : await authenticateWithApple("signup", signupOptions);
 
       toast.dismiss("social-signup");
       if (result.success) {
@@ -111,7 +107,9 @@ export function Signup() {
           selectedAvatar,
           result.email,
           result.provider,
-          result.token
+          result.token,
+          undefined,
+          result.firebaseUid
         );
         toast.success(`Welcome to Letterbox, ${finalName}!`);
         triggerConfetti();
@@ -167,7 +165,10 @@ export function Signup() {
           selectedAge,
           selectedAvatar,
           phone.trim(),
-          "phone"
+          "phone",
+          undefined,
+          undefined,
+          userCredential.user.uid
         );
         toast.success(`Welcome to Letterbox, ${finalName}!`);
         triggerConfetti();
@@ -211,7 +212,9 @@ export function Signup() {
         selectedAvatar,
         result.email,
         "email",
-        result.token
+        result.token,
+        undefined,
+        result.firebaseUid
       );
       toast.success(`Welcome to Letterbox, ${finalName}!`);
       triggerConfetti();
