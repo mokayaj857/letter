@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ActivityPuzzle } from "@/games/types";
-import { Check, ShoppingBag, Award, Sparkles, ArrowRight, ShieldCheck, DollarSign } from "lucide-react";
+import { Check, ShoppingBag, Award, Sparkles, ArrowRight, ShieldCheck, DollarSign, Compass } from "lucide-react";
 import { playPop, playSuccess, playError } from "@/lib/audio";
 import { triggerConfetti } from "@/lib/confetti";
 import { useUserStore } from "@/lib/userStore";
@@ -34,11 +34,14 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
   const [signedPledges, setSignedPledges] = useState<number[]>([]);
   const [signerName, setSignerName] = useState(user?.name || "Money Champion");
 
+  // Subtype 6: Home Treasure Hunt & Practical Activities
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
   // 1. Budget Challenge Logic
   const categories = activity.config?.categories || [];
   const maxBudget = activity.config?.budget || 8000;
   const currentTotalSpent = Object.values(selectedItems).reduce(
-    (acc: number, item: any) => acc + item.price,
+    (acc: number, item: any) => acc + (item?.price || 0),
     0
   );
   const remainingBudget = maxBudget - currentTotalSpent;
@@ -86,6 +89,9 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
     wyrScenarios.length > 0 &&
     wyrScenarios.every((s: any) => !!wyrChoices[s.id]);
 
+  // 4. Photographer Packages
+  const packagesList = activity.config?.packages || activity.config?.pricingOptions || [];
+
   // 5. Smart Money Pledge Logic
   const pledges = activity.config?.pledges || [];
   const togglePledge = (idx: number) => {
@@ -96,13 +102,23 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
   };
   const isPledgeReady = signedPledges.length === pledges.length && signerName.trim().length > 0;
 
+  // 6. Practical Steps Logic
+  const stepsList = activity.config?.steps || [];
+  const toggleStep = (stepIdx: number) => {
+    playPop(settings.soundEnabled);
+    setCompletedSteps((prev) =>
+      prev.includes(stepIdx) ? prev.filter((s) => s !== stepIdx) : [...prev, stepIdx]
+    );
+  };
+  const isStepsDone = stepsList.length > 0 && completedSteps.length === stepsList.length;
+
   return (
     <div className="flex flex-col h-full select-none">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-border/50">
         <div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-primary-deep">
-            Special Activity Challenge
+            {activity.topic} · Practical Activity
           </span>
           <h2 className="text-base sm:text-lg font-bold font-display text-foreground">
             {activity.title}
@@ -143,8 +159,9 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                 Surplus Savings
               </p>
               <p
-                className={`font-display text-base font-bold ${remainingBudget >= 0 ? "text-emerald-600" : "text-rose-600"
-                  }`}
+                className={`font-display text-base font-bold ${
+                  remainingBudget >= 0 ? "text-emerald-600" : "text-rose-600"
+                }`}
               >
                 KSh {remainingBudget.toLocaleString()}
               </p>
@@ -153,43 +170,47 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
 
           {/* Categories */}
           <div className="space-y-2.5 flex-1">
-            {categories.map((cat: any) => (
-              <div key={cat.name} className="p-3 bg-secondary/40 border border-border/60 rounded-2xl">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-display text-xs font-bold text-foreground">
-                    {cat.name} {cat.required && <span className="text-rose-500">*</span>}
-                  </span>
-                  {selectedItems[cat.name] && (
-                    <span className="text-[11px] font-bold text-primary-deep bg-primary-soft/50 px-2 py-0.5 rounded-md">
-                      KSh {selectedItems[cat.name].price.toLocaleString()}
+            {categories.map((cat: any) => {
+              const options = cat.options || cat.items || [];
+              return (
+                <div key={cat.name} className="p-3 bg-secondary/40 border border-border/60 rounded-2xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-display text-xs font-bold text-foreground">
+                      {cat.name} {cat.required && <span className="text-rose-500">*</span>}
                     </span>
-                  )}
-                </div>
+                    {selectedItems[cat.name] && (
+                      <span className="text-[11px] font-bold text-primary-deep bg-primary-soft/50 px-2 py-0.5 rounded-md">
+                        KSh {selectedItems[cat.name].price.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="space-y-1.5">
-                  {cat.items.map((item: any) => {
-                    const isSelected = selectedItems[cat.name]?.id === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          playPop(settings.soundEnabled);
-                          setSelectedItems((prev) => ({ ...prev, [cat.name]: item }));
-                        }}
-                        className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all ${isSelected
-                            ? "bg-primary text-primary-foreground font-bold shadow-xs"
-                            : "bg-card border border-border/70 text-foreground hover:bg-muted/40"
+                  <div className="space-y-1.5">
+                    {options.map((item: any, itemIdx: number) => {
+                      const isSelected = selectedItems[cat.name]?.name === item.name;
+                      return (
+                        <button
+                          key={itemIdx}
+                          type="button"
+                          onClick={() => {
+                            playPop(settings.soundEnabled);
+                            setSelectedItems((prev) => ({ ...prev, [cat.name]: item }));
+                          }}
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                              : "bg-card border border-border/70 text-foreground hover:bg-muted/40"
                           }`}
-                      >
-                        <span className="truncate pr-2">{item.name}</span>
-                        <span className="shrink-0">KSh {item.price}</span>
-                      </button>
-                    );
-                  })}
+                        >
+                          <span className="truncate pr-2">{item.name}</span>
+                          <span className="shrink-0">KSh {item.price.toLocaleString()}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <button
@@ -206,29 +227,32 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
       {/* --- SUBTYPE 2: 21-Scenario Account Matcher --- */}
       {activity.subtype === "account_matcher" && (
         <div className="flex-1 flex flex-col space-y-3 overflow-y-auto pr-1">
-          {scenarios.map((sc: any) => {
+          {scenarios.map((sc: any, sIdx: number) => {
             const currentSelected = matcherAnswers[sc.id];
             const isRight = currentSelected === sc.correctAccount;
+            const scenarioText = sc.text || sc.need || "";
+            const customerTitle = sc.customer || `Scenario #${sIdx + 1}`;
 
             return (
               <div
                 key={sc.id}
-                className={`p-3 rounded-2xl border-2 transition-all ${isRight
+                className={`p-3 rounded-2xl border-2 transition-all ${
+                  isRight
                     ? "border-emerald-500 bg-emerald-500/5"
                     : currentSelected
-                      ? "border-rose-500/60 bg-rose-500/5"
-                      : "border-border bg-card"
-                  }`}
+                    ? "border-rose-500/60 bg-rose-500/5"
+                    : "border-border bg-card"
+                }`}
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-display text-xs font-bold text-primary-deep">{sc.customer}</p>
+                  <p className="font-display text-xs font-bold text-primary-deep">{customerTitle}</p>
                   {isRight && (
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-full flex items-center gap-1">
                       <Check className="size-3" strokeWidth={3} /> Matched
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-foreground/90 font-medium mt-1 leading-snug">{sc.need}</p>
+                <p className="text-xs text-foreground/90 font-medium mt-1 leading-snug">{scenarioText}</p>
 
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {accountTypes.map((acc: string) => (
@@ -236,12 +260,13 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                       key={acc}
                       type="button"
                       onClick={() => handleMatcherSelect(sc.id, acc)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${currentSelected === acc
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${
+                        currentSelected === acc
                           ? acc === sc.correctAccount
                             ? "bg-emerald-600 border-emerald-600 text-white font-bold"
                             : "bg-rose-600 border-rose-600 text-white font-bold"
                           : "bg-secondary/70 border-border text-foreground hover:border-primary/50"
-                        }`}
+                      }`}
                     >
                       {acc}
                     </button>
@@ -278,6 +303,8 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
         <div className="flex-1 flex flex-col space-y-3 overflow-y-auto pr-1">
           {wyrScenarios.map((sc: any, idx: number) => {
             const picked = wyrChoices[sc.id];
+            const optionA = sc.thisChoice || sc.optionA || "";
+            const optionB = sc.thatChoice || sc.optionB || "";
 
             return (
               <div key={sc.id} className="p-3.5 bg-card border-2 border-border rounded-2xl">
@@ -289,31 +316,27 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => handleWyrChoice(sc.id, "A")}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${picked === "A"
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${
+                      picked === "A"
                         ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs"
                         : "border-border bg-secondary/50 text-foreground hover:bg-muted/40"
-                      }`}
+                    }`}
                   >
-                    <strong>A.</strong> {sc.optionA}
+                    <strong>This:</strong> {optionA}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleWyrChoice(sc.id, "B")}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${picked === "B"
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all ${
+                      picked === "B"
                         ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs"
                         : "border-border bg-secondary/50 text-foreground hover:bg-muted/40"
-                      }`}
+                    }`}
                   >
-                    <strong>B.</strong> {sc.optionB}
+                    <strong>That:</strong> {optionB}
                   </button>
                 </div>
-
-                {picked && (
-                  <p className="mt-2.5 text-xs text-primary-deep font-semibold bg-primary-soft/40 p-2.5 rounded-xl">
-                    🌟 {sc.insight}
-                  </p>
-                )}
               </div>
             );
           })}
@@ -334,45 +357,64 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
         </div>
       )}
 
-      {/* --- SUBTYPE 4: Photographer Gig --- */}
+      {/* --- SUBTYPE 4: Photographer Gig Project --- */}
       {activity.subtype === "photographer_gig" && (
         <div className="flex-1 flex flex-col space-y-3 overflow-y-auto pr-1">
           <div className="p-3 bg-primary-soft/30 border border-primary/20 rounded-2xl">
             <p className="text-xs font-semibold text-foreground">
-              Equipment & Printing Fixed Cost: <strong>KSh 1,500</strong>
+              Neighborhood Photography Startup: <strong>KSh 0 initial gear cost</strong> (using existing smartphone!)
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Select your service tier and calculate your estimated profit!
+              Select your service package and calculate profit margin per photoshoot.
             </p>
           </div>
 
           <div className="space-y-2 flex-1">
-            {(activity.config?.pricingOptions || []).map((opt: any) => {
-              const isSelected = selectedPackage === opt.id;
+            {packagesList.map((pkg: any) => {
+              const isSelected = selectedPackage === pkg.id;
+              const packageName = pkg.name || pkg.package || "";
+              const price = pkg.price || 0;
+              const profit = pkg.profit || pkg.estProfit || 0;
+
               return (
                 <div
-                  key={opt.id}
+                  key={pkg.id}
                   onClick={() => {
                     playPop(settings.soundEnabled);
-                    setSelectedPackage(opt.id);
+                    setSelectedPackage(pkg.id);
                   }}
-                  className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${isSelected
+                  className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    isSelected
                       ? "border-primary bg-card shadow-sm"
                       : "border-border bg-card/60 hover:bg-card"
-                    }`}
+                  }`}
                 >
                   <div className="flex justify-between items-center">
-                    <p className="font-display text-xs font-bold text-foreground">{opt.package}</p>
-                    <p className="font-display text-sm font-bold text-primary">KSh {opt.price}</p>
+                    <p className="font-display text-xs font-bold text-foreground">{packageName}</p>
+                    <p className="font-display text-sm font-bold text-primary">KSh {price.toLocaleString()}</p>
                   </div>
+                  {pkg.includes && (
+                    <p className="mt-1 text-[11px] text-muted-foreground leading-snug">{pkg.includes}</p>
+                  )}
                   <div className="mt-2 flex justify-between items-center text-xs font-semibold text-emerald-600">
                     <span>Net Profit</span>
-                    <span>+KSh {opt.estProfit}</span>
+                    <span>+KSh {profit.toLocaleString()}</span>
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {activity.config?.growthSteps && (
+            <div className="p-3 bg-secondary/50 rounded-2xl border border-border space-y-1.5">
+              <p className="text-[11px] font-bold text-primary-deep uppercase">Marketing & Reinvestment Strategy:</p>
+              {activity.config.growthSteps.map((st: string, idx: number) => (
+                <p key={idx} className="text-[11px] text-muted-foreground leading-snug">
+                  • {st}
+                </p>
+              ))}
+            </div>
+          )}
 
           {selectedPackage && (
             <button
@@ -399,7 +441,7 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
               Letterbox Financial Literacy Certificate
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              Check all 5 commitments below to sign your official certificate:
+              Confirm your commitments to seal your official pledge:
             </p>
           </div>
 
@@ -411,16 +453,18 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
                   key={idx}
                   type="button"
                   onClick={() => togglePledge(idx)}
-                  className={`w-full flex items-start gap-2.5 p-3 rounded-2xl border-2 text-left text-xs transition-all ${isChecked
+                  className={`w-full flex items-start gap-2.5 p-3 rounded-2xl border-2 text-left text-xs transition-all ${
+                    isChecked
                       ? "border-emerald-500 bg-emerald-500/10 text-foreground font-semibold"
                       : "border-border bg-card text-muted-foreground"
-                    }`}
+                  }`}
                 >
                   <span
-                    className={`size-5 mt-0.5 rounded-md grid place-items-center shrink-0 border ${isChecked
+                    className={`size-5 mt-0.5 rounded-md grid place-items-center shrink-0 border ${
+                      isChecked
                         ? "bg-emerald-600 border-emerald-600 text-white"
                         : "border-muted-foreground/40 bg-muted"
-                      }`}
+                    }`}
                   >
                     {isChecked && <Check className="size-3.5" strokeWidth={3} />}
                   </span>
@@ -453,6 +497,57 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
             className="press mt-2 w-full rounded-2xl bg-primary py-3.5 font-display text-sm font-bold text-primary-foreground shadow-pop disabled:opacity-40 disabled:cursor-not-allowed active:translate-y-1"
           >
             Sign & Seal Certificate (+150 XP)
+          </button>
+        </div>
+      )}
+
+      {/* --- SUBTYPE 6: Home Treasure Hunt & Step-by-Step Practical Activities --- */}
+      {activity.subtype === "home_treasure_hunt" && (
+        <div className="flex-1 flex flex-col space-y-3 overflow-y-auto pr-1">
+          <div className="space-y-2.5 flex-1">
+            {stepsList.map((st: any, idx: number) => {
+              const isChecked = completedSteps.includes(idx);
+              return (
+                <div
+                  key={idx}
+                  onClick={() => toggleStep(idx)}
+                  className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    isChecked
+                      ? "border-emerald-500 bg-emerald-500/10"
+                      : "border-border bg-card"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-xs font-bold text-primary-deep">
+                      Step {st.step || idx + 1}: {st.title}
+                    </span>
+                    <span
+                      className={`size-5 rounded-md grid place-items-center border ${
+                        isChecked
+                          ? "bg-emerald-600 border-emerald-600 text-white"
+                          : "border-muted-foreground/40 bg-muted"
+                      }`}
+                    >
+                      {isChecked && <Check className="size-3.5" strokeWidth={3} />}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-snug">{st.description}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            disabled={!isStepsDone}
+            onClick={() => {
+              playSuccess(settings.soundEnabled);
+              triggerConfetti();
+              onComplete(120, 35);
+            }}
+            className="press mt-2 w-full rounded-2xl bg-primary py-3.5 font-display text-sm font-bold text-primary-foreground shadow-pop disabled:opacity-40 disabled:cursor-not-allowed active:translate-y-1"
+          >
+            Complete Practical Activity (+120 XP)
           </button>
         </div>
       )}

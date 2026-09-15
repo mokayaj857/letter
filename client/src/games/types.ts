@@ -2,7 +2,6 @@ export type GameType =
   | "wordsearch"
   | "crossword"
   | "quiz"
-  | "cryptogram"
   | "activity";
 
 export interface WordSearchPuzzle {

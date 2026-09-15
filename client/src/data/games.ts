@@ -2,22 +2,61 @@ import { gameArt } from "@/assets/icons";
 import type { AnyGame } from "@/games/types";
 import {
   foundationsWordSearch1,
+  foundationsWordSearch2,
   foundationsQuiz,
 } from "@/games/money-basics/foundations-of-money";
 import {
   kenyanCurrencyWordSearch1,
+  kenyanCurrencyWordSearch2,
   kenyanCurrencyQuiz1,
   kenyanCurrencyCrossword1,
+  kenyanCurrencyCrossword2,
+  tactileSecurityActivity,
 } from "@/games/money-basics/features-of-kenyan-currency";
 import {
   mpesaWordSearch,
+  mpesaQuiz,
+  mpesaGoQuiz,
   mpesaCrossword1,
+  mpesaCrossword2,
 } from "@/games/money-basics/characteristics-of-mpesa";
 import {
+  kenyanExportsWordSearch,
+  kenyanExportsQuiz,
+} from "@/games/money-basics/kenyan-exports";
+import {
+  kenyanImportsWordSearch1,
+  kenyanImportsWordSearch2,
+  kenyanImportsQuiz,
+} from "@/games/money-basics/kenyan-imports";
+import {
+  currenciesKenyaWordSearch1,
+  currenciesKenyaWordSearch2,
+  currenciesKenyaQuiz,
   currenciesKenyaCryptogram,
 } from "@/games/money-basics/currencies-of-kenya";
 import {
+  historyOfTradeWordSearch1,
+  historyOfTradeWordSearch2,
+  historyOfTradeWordSearch3,
+  historyOfTradeWordSearch4,
+  historyOfTradeQuiz,
+} from "@/games/global-money/history-of-trade";
+import {
+  currenciesAfricaWordSearch1,
+  currenciesAfricaWordSearch2,
+  currenciesAfricaQuiz,
+} from "@/games/global-money/currencies-africa";
+import {
+  currenciesAmericaWordSearch,
+  currenciesEuropeWordSearch,
+  currenciesMiddleEastWordSearch,
+  currenciesAsiaWordSearch1,
+  currenciesAsiaWordSearch2,
+} from "@/games/global-money/currencies-world";
+import {
   budgetingWordSearch1,
+  budgetingWordSearch2,
   budgetingWordSearch3,
   budgetingQuiz,
   schoolBudgetChallengeActivity,
@@ -25,40 +64,78 @@ import {
 } from "@/games/spending-saving/budgeting";
 import {
   consumerSkillsWordSearch1,
+  consumerSkillsWordSearch2,
+  consumerSkillsWordSearch3,
+  consumerSkillsWordSearch4,
+  consumerSkillsWordSearch5,
   consumerSkillsQuiz,
 } from "@/games/spending-saving/consumer-skills";
 import {
+  savvyShopperWordSearch,
+  savvyShopperQuiz,
+} from "@/games/spending-saving/savvy-shopper";
+import {
   paymentMethodsWordSearch1,
+  paymentMethodsWordSearch2,
+  paymentMethodsWordSearch3,
   paymentMethodsQuiz,
 } from "@/games/spending-saving/methods-of-payment";
 import {
   bankingWordSearch1,
+  bankingWordSearch2,
   bankingQuiz,
   bankAccountsMatcherActivity,
 } from "@/games/spending-saving/banking";
 import {
+  creditLoansWordSearch1,
+  creditLoansWordSearch2,
   creditLoansQuiz,
 } from "@/games/spending-saving/credit-loans";
+import {
+  taxesWordSearch1,
+  taxesWordSearch2,
+  taxesQuiz,
+} from "@/games/spending-saving/taxes";
 import {
   digitalEconomyWordSearch,
   digitalEconomyQuiz,
 } from "@/games/spending-saving/digital-economy";
 import {
   wouldYouRatherActivity,
+  smartMoneyPledgeActivity,
 } from "@/games/spending-saving/activities";
 import {
   earningWordSearch1,
+  earningWordSearch2,
   earningQuiz,
 } from "@/games/earning-growing/earning";
 import {
   careersWordSearch1,
+  careersWordSearch2,
   careersWordSearch3,
+  careersWordSearch4,
+  careersWordSearch5,
+  careersWordSearch6,
+  careersWordSearch7,
+  careersWordSearch8,
+  careersWordSearch9,
+  careersWordSearch10,
   careersQuiz1,
   careersQuiz2,
 } from "@/games/earning-growing/careers-employment";
 import {
+  entrepreneurshipWordSearch1,
+  entrepreneurshipWordSearch2,
+  entrepreneurshipWordSearch3,
+  entrepreneurshipQuiz,
+  photographerGigActivity,
+} from "@/games/earning-growing/entrepreneurship";
+import {
   investingWordSearch1,
+  investingWordSearch2,
   investingWordSearch3,
+  investingWordSearch4,
+  investingWordSearch5,
   investingQuiz1,
   investingQuiz2,
 } from "@/games/earning-growing/investing";
@@ -136,6 +213,27 @@ export const games: Game[] = [
         gameData: mpesaCrossword1,
       },
       {
+        title: "Kenyan Exports: Word Search",
+        kind: "wordsearch",
+        state: "locked",
+        xp: 60,
+        gameData: kenyanExportsWordSearch,
+      },
+      {
+        title: "Kenyan Exports: Quiz",
+        kind: "quiz",
+        state: "locked",
+        xp: 80,
+        gameData: kenyanExportsQuiz,
+      },
+      {
+        title: "Kenyan Imports: Word Search",
+        kind: "wordsearch",
+        state: "locked",
+        xp: 60,
+        gameData: kenyanImportsWordSearch1,
+      },
+      {
         title: "Currencies of Kenya: A1Z26 Cryptogram",
         kind: "cryptogram",
         state: "locked",
@@ -148,6 +246,65 @@ export const games: Game[] = [
         state: "locked",
         xp: 150,
         gameData: kenyanCurrencyQuiz1,
+      },
+    ],
+  },
+  {
+    id: "global-money",
+    title: "Global Money & Trade",
+    blurb: "Ancient African trade routes, cowrie shells, and world currencies.",
+    art: gameArt["digital-money"],
+    tint: "bg-sky",
+    done: 0,
+    levels: [
+      {
+        title: "History of Trade in Africa: Word Search",
+        kind: "wordsearch",
+        state: "current",
+        xp: 60,
+        gameData: historyOfTradeWordSearch1,
+      },
+      {
+        title: "Trans-Saharan & Maritime Trade: Quiz",
+        kind: "quiz",
+        state: "locked",
+        xp: 80,
+        gameData: historyOfTradeQuiz,
+      },
+      {
+        title: "Currencies of Africa: Word Search",
+        kind: "wordsearch",
+        state: "locked",
+        xp: 60,
+        gameData: currenciesAfricaWordSearch1,
+      },
+      {
+        title: "Currencies of Africa: Quiz",
+        kind: "quiz",
+        state: "locked",
+        xp: 80,
+        gameData: currenciesAfricaQuiz,
+      },
+      {
+        title: "Currencies of the Americas: Word Search",
+        kind: "wordsearch",
+        state: "locked",
+        xp: 60,
+        gameData: currenciesAmericaWordSearch,
+      },
+      {
+        title: "Currencies of Europe: Word Search",
+        kind: "wordsearch",
+        state: "locked",
+        xp: 60,
+        gameData: currenciesEuropeWordSearch,
+      },
+      {
+        title: "Asian Currencies: Boss Battle",
+        kind: "boss",
+        state: "locked",
+        xp: 150,
+        gameData: currenciesAsiaWordSearch1,
       },
     ],
   },
@@ -204,6 +361,44 @@ export const games: Game[] = [
     ],
   },
   {
+    id: "entrepreneurship",
+    title: "Entrepreneurship",
+    blurb: "Start a mini business, calculate profit, and pitch like a founder.",
+    art: gameArt["young-hustler"],
+    tint: "bg-sun",
+    done: 0,
+    levels: [
+      {
+        title: "Startup Foundations & Strategy: Word Search",
+        kind: "wordsearch",
+        state: "current",
+        xp: 60,
+        gameData: entrepreneurshipWordSearch1,
+      },
+      {
+        title: "Branding, Pitch & Suppliers: Word Search",
+        kind: "wordsearch",
+        state: "locked",
+        xp: 60,
+        gameData: entrepreneurshipWordSearch2,
+      },
+      {
+        title: "Business Planning & Jua Kali: Quiz",
+        kind: "quiz",
+        state: "locked",
+        xp: 80,
+        gameData: entrepreneurshipQuiz,
+      },
+      {
+        title: "Family Event Photographer Gig Project",
+        kind: "activity",
+        state: "locked",
+        xp: 150,
+        gameData: photographerGigActivity,
+      },
+    ],
+  },
+  {
     id: "budgeting",
     title: "Budgeting",
     blurb: "Plan a monthly budget, needs vs wants, and master spending.",
@@ -226,7 +421,7 @@ export const games: Game[] = [
         gameData: budgetingWordSearch3,
       },
       {
-        title: "Budget Allocation & 50/30/20 Rule: Quiz",
+        title: "Budget Allocation & Priorities: Quiz",
         kind: "quiz",
         state: "locked",
         xp: 80,
@@ -306,7 +501,7 @@ export const games: Game[] = [
         gameData: paymentMethodsQuiz,
       },
       {
-        title: "Would You Rather: Delay of Gratification",
+        title: "Would You Rather: Delayed Gratification",
         kind: "activity",
         state: "locked",
         xp: 100,
@@ -351,7 +546,7 @@ export const games: Game[] = [
         gameData: investingWordSearch3,
       },
       {
-        title: "Nairobi Securities Exchange & CDSC: Quiz",
+        title: "Nairobi Securities Exchange & Net Worth: Quiz",
         kind: "quiz",
         state: "locked",
         xp: 80,
@@ -365,24 +560,20 @@ export const games: Game[] = [
         gameData: digitalEconomyWordSearch,
       },
       {
-        title: "Investing & Cyber Safety: Boss Battle",
+        title: "Digital Economy & Cloud Tech: Boss Quiz",
         kind: "boss",
         state: "locked",
         xp: 150,
         gameData: digitalEconomyQuiz,
       },
+      {
+        title: "The Smart Money Pledge Ceremony",
+        kind: "activity",
+        state: "locked",
+        xp: 100,
+        gameData: smartMoneyPledgeActivity,
+      },
     ],
-  },
-  {
-    id: "entrepreneurship",
-    title: "Entrepreneurship",
-    blurb: "Start a mini business, calculate profit, and pitch like a founder.",
-    art: gameArt["young-hustler"],
-    tint: "bg-sun",
-    locked: true,
-    comingSoon: true,
-    done: 0,
-    levels: [],
   },
 ];
 
