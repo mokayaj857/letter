@@ -37,16 +37,9 @@ import {
   playSuccess,
   playError,
   playCoin,
-  BGM_TRACKS,
-  getCurrentBgmTrack,
-  isBackgroundMusicPlaying,
   startBackgroundMusic,
   stopBackgroundMusic,
-  nextBgmTrack,
-  onPlaybackChange,
-  onTrackChange,
 } from "../lib/audio";
-import { SoundStudioModal } from "@/components/SoundStudioModal";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -75,11 +68,29 @@ const TITLES = [
   "Smart Investor",
 ];
 
-const REMINDER_TIMES = [
-  { label: "After School", time: "4:00 PM" },
-  { label: "Dinner Time", time: "6:30 PM" },
-  { label: "Before Bed", time: "7:45 PM" },
+interface ReminderSlot {
+  id: string;
+  label: string;
+  time: string;
+  time24: string;
+}
+
+const DEFAULT_REMINDER_SLOTS: ReminderSlot[] = [
+  { id: "after_school", label: "After School", time: "4:00 PM", time24: "16:00" },
+  { id: "dinner_time", label: "Dinner Time", time: "6:30 PM", time24: "18:30" },
+  { id: "before_bed", label: "Before Bed", time: "8:00 PM", time24: "20:00" },
 ];
+
+function to12HourFormat(time24: string): string {
+  if (!time24) return "4:00 PM";
+  const [hStr, mStr] = time24.split(":");
+  let h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  const period = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  const mFormatted = m < 10 ? `0${m}` : `${m}`;
+  return `${h}:${mFormatted} ${period}`;
+}
 
 function Profile() {
   const navigate = useNavigate();
@@ -118,22 +129,29 @@ function Profile() {
   const [activeStatModal, setActiveStatModal] = useState<"coins" | "streak" | "xp" | null>(null);
 
   // Settings modals
-  const [showAudioModal, setShowAudioModal] = useState(false);
   const [showRemindersModal, setShowRemindersModal] = useState(false);
-  const [selectedReminderTime, setSelectedReminderTime] = useState("4:00 PM");
-  const [isPlayingBgm, setIsPlayingBgm] = useState(isBackgroundMusicPlaying());
-  const [currentBgm, setCurrentBgm] = useState(getCurrentBgmTrack());
+  const [reminderSlots, setReminderSlots] = useState<ReminderSlot[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("letterbox_custom_reminder_slots");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return DEFAULT_REMINDER_SLOTS;
+  });
 
-  useEffect(() => {
-    setIsPlayingBgm(isBackgroundMusicPlaying());
-    setCurrentBgm(getCurrentBgmTrack());
-    const unsubPlay = onPlaybackChange((p) => setIsPlayingBgm(p));
-    const unsubTrack = onTrackChange((t) => setCurrentBgm(t));
-    return () => {
-      unsubPlay();
-      unsubTrack();
-    };
-  }, []);
+  const [selectedSlotId, setSelectedSlotId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("letterbox_selected_reminder_slot_id");
+        if (saved) return saved;
+      } catch {}
+    }
+    return "after_school";
+  });
+
+  const activeReminder =
+    reminderSlots.find((s) => s.id === selectedSlotId) || reminderSlots[0];
 
   const [showParentModal, setShowParentModal] = useState(false);
   const [parentUnlocked, setParentUnlocked] = useState(false);
@@ -265,11 +283,10 @@ function Profile() {
                   setAvatar(key);
                   playPop(settings.soundEnabled);
                 }}
-                className={`press relative flex aspect-square animate-pop-in items-center justify-center rounded-3xl border-2 p-2 shadow-card hover:-translate-y-1 active:scale-95 transition-all ${
-                  isSelected
+                className={`press relative flex aspect-square animate-pop-in items-center justify-center rounded-3xl border-2 p-2 shadow-card hover:-translate-y-1 active:scale-95 transition-all ${isSelected
                     ? "border-primary bg-primary-soft ring-2 ring-primary/40"
                     : "border-border bg-card"
-                }`}
+                  }`}
                 style={{ animationDelay: `${i * 45}ms` }}
               >
                 <img
@@ -296,154 +313,90 @@ function Profile() {
         </h2>
 
         <div className="mt-3 space-y-3">
-          {/* Rich Letterbox Sound Studio Card */}
-          <div className="rounded-3xl border-2 border-border bg-card p-4 shadow-card hover:-translate-y-0.5 transition-all overflow-hidden relative">
-            {/* Ambient glowing aura when playing */}
-            {isPlayingBgm && (
-              <div className="absolute -top-12 -right-12 size-36 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
-            )}
-
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  playPop(settings.soundEnabled);
-                  setShowAudioModal(true);
-                }}
-                className="flex items-center gap-3.5 text-left flex-1 min-w-0 group"
+          {/* Music Toggle Card */}
+          <div className="flex w-full items-center justify-between rounded-3xl border-2 border-border bg-card p-4 shadow-card">
+            <div className="flex items-center gap-3.5">
+              <span
+                className={`grid size-11 place-items-center rounded-2xl border transition-colors ${
+                  settings.musicEnabled
+                    ? "bg-sun text-sun-foreground border-sun"
+                    : "bg-muted text-muted-foreground border-border"
+                }`}
               >
-                {/* Animated Mini Vinyl Disc / Sound Icon */}
-                <div className="relative size-11 sm:size-12 shrink-0">
-                  <div
-                    className={`size-full rounded-2xl flex items-center justify-center transition-all ${
-                      settings.soundEnabled && (settings.musicEnabled || (settings.soundVolume ?? 80) > 0)
-                        ? "bg-gradient-to-tr from-sun via-amber-400 to-yellow-300 text-sun-foreground shadow-sm"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {isPlayingBgm ? (
-                      <Headphones className="size-5 sm:size-6 animate-pulse" strokeWidth={2.4} />
-                    ) : settings.soundEnabled ? (
-                      <Volume2 className="size-5 sm:size-6" strokeWidth={2.4} />
-                    ) : (
-                      <VolumeX className="size-5 sm:size-6" strokeWidth={2.4} />
-                    )}
-                  </div>
-                  {isPlayingBgm && (
-                    <span className="absolute -top-1 -right-1 flex size-3">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                      <span className="relative inline-flex size-3 rounded-full bg-primary" />
-                    </span>
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-display font-bold text-foreground text-sm sm:text-base group-hover:text-primary transition-colors">
-                      Music & Sounds
-                    </p>
-                    {isPlayingBgm && (
-                      <span className="rounded-full bg-primary/15 px-1.5 py-0.2 text-[9px] font-display font-bold text-primary-deep flex items-center gap-1">
-                        <span className="size-1 rounded-full bg-primary animate-ping" />
-                        Live
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold text-muted-foreground truncate">
-                    {isPlayingBgm
-                      ? `Playing: ${currentBgm.title}`
-                      : settings.soundEnabled
-                        ? `BGM: ${settings.musicEnabled ? `${settings.musicVolume ?? 70}%` : "Off"} · SFX: ${settings.soundVolume ?? 80}%`
-                        : "Audio Muted"}
-                  </p>
-                </div>
-              </button>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                {/* Inline Quick Play / Pause Button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playPop(settings.soundEnabled);
-                    if (isPlayingBgm) {
-                      stopBackgroundMusic();
-                    } else {
-                      if (!settings.musicEnabled) toggleMusic();
-                      if (!settings.soundEnabled) toggleSound();
-                      startBackgroundMusic(true, true, settings.musicVolume ?? 70);
-                    }
-                  }}
-                  title={isPlayingBgm ? "Pause Music" : "Play Music"}
-                  className={`press grid size-9 place-items-center rounded-2xl border-2 transition-all shadow-sm ${
-                    isPlayingBgm
-                      ? "border-primary/40 bg-primary-soft text-primary-deep hover:bg-primary/20"
-                      : "border-border bg-card text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {isPlayingBgm ? (
-                    <Pause className="size-4" strokeWidth={2.8} />
-                  ) : (
-                    <Play className="size-4 fill-current ml-0.5" />
-                  )}
-                </button>
-
-                {/* Inline Quick Skip Button */}
-                {isPlayingBgm && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playPop(settings.soundEnabled);
-                      nextBgmTrack();
-                    }}
-                    title="Next Track"
-                    className="press grid size-9 place-items-center rounded-2xl border-2 border-border bg-card text-foreground hover:bg-muted shadow-sm"
-                  >
-                    <SkipForward className="size-4" strokeWidth={2.5} />
-                  </button>
-                )}
-
-                {/* Open Sound Studio Action Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    playPop(settings.soundEnabled);
-                    setShowAudioModal(true);
-                  }}
-                  className="press flex items-center gap-1 rounded-2xl bg-sun/20 border border-sun/40 px-2.5 py-1.5 font-display text-[11px] font-bold text-sun-foreground hover:bg-sun/30"
-                >
-                  <span>Studio</span>
-                  <ChevronRight className="size-3.5" />
-                </button>
+                <Music className="size-5" strokeWidth={2.4} />
+              </span>
+              <div className="text-left">
+                <p className="font-display font-bold text-foreground">Music</p>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {settings.musicEnabled ? "Background music is on" : "Music is off"}
+                </p>
               </div>
             </div>
 
-            {/* Active Mini Visualizer Waveform Bar if playing */}
-            {isPlayingBgm && (
+            <button
+              type="button"
+              onClick={() => {
+                const nextVal = !settings.musicEnabled;
+                toggleMusic();
+                playPop(settings.soundEnabled);
+                if (nextVal) {
+                  startBackgroundMusic(true, true, settings.musicVolume ?? 70);
+                } else {
+                  stopBackgroundMusic();
+                }
+              }}
+              className={`press relative h-7 w-12 rounded-full p-0.5 border-2 border-border transition-colors ${
+                settings.musicEnabled ? "bg-primary" : "bg-muted"
+              }`}
+            >
               <div
-                onClick={() => {
-                  playPop(settings.soundEnabled);
-                  setShowAudioModal(true);
-                }}
-                className="mt-3 pt-2.5 border-t border-border/60 flex items-center justify-between text-[11px] cursor-pointer hover:bg-muted/20 -mx-4 -mb-4 px-4 py-2 transition-colors"
+                className={`size-5 rounded-full bg-card shadow-md transition-transform duration-200 ${
+                  settings.musicEnabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Sound Effects Toggle Card */}
+          <div className="flex w-full items-center justify-between rounded-3xl border-2 border-border bg-card p-4 shadow-card">
+            <div className="flex items-center gap-3.5">
+              <span
+                className={`grid size-11 place-items-center rounded-2xl border transition-colors ${
+                  settings.soundEnabled
+                    ? "bg-amber-400 text-amber-950 border-amber-400"
+                    : "bg-muted text-muted-foreground border-border"
+                }`}
               >
-                <div className="flex items-center gap-2 text-primary-deep font-semibold">
-                  <span className="flex items-center gap-0.5 h-3">
-                    <span className="w-0.5 h-2 bg-primary rounded-full animate-eq-1" />
-                    <span className="w-0.5 h-3 bg-primary rounded-full animate-eq-2" />
-                    <span className="w-0.5 h-1.5 bg-primary rounded-full animate-eq-3" />
-                    <span className="w-0.5 h-2.5 bg-primary rounded-full animate-eq-4" />
-                  </span>
-                  <span className="truncate text-[10px] sm:text-xs">
-                    {currentBgm.mood} · {currentBgm.bpm} BPM
-                  </span>
-                </div>
-                <span className="text-muted-foreground text-[10px] font-bold hover:text-primary transition-colors flex items-center gap-0.5">
-                  Full Studio <ChevronRight className="size-3" />
-                </span>
+                {settings.soundEnabled ? (
+                  <Volume2 className="size-5" strokeWidth={2.4} />
+                ) : (
+                  <VolumeX className="size-5" strokeWidth={2.4} />
+                )}
+              </span>
+              <div className="text-left">
+                <p className="font-display font-bold text-foreground">Sound</p>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {settings.soundEnabled ? "Sound effects are on" : "Sound effects are off"}
+                </p>
               </div>
-            )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                toggleSound();
+                playPop(!settings.soundEnabled);
+              }}
+              className={`press relative h-7 w-12 rounded-full p-0.5 border-2 border-border transition-colors ${
+                settings.soundEnabled ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <div
+                className={`size-5 rounded-full bg-card shadow-md transition-transform duration-200 ${
+                  settings.soundEnabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
 
           {/* Reminders Card */}
@@ -462,7 +415,7 @@ function Profile() {
               <div className="text-left">
                 <p className="font-display font-bold text-foreground">Reminders</p>
                 <p className="text-xs font-semibold text-muted-foreground">
-                  {settings.remindersEnabled ? `Daily alert at ${selectedReminderTime}` : "Turned off"}
+                  {settings.remindersEnabled ? `Daily alert at ${activeReminder.time}` : "Turned off"}
                 </p>
               </div>
             </div>
@@ -574,11 +527,10 @@ function Profile() {
                       key={t}
                       type="button"
                       onClick={() => setTitleInput(t)}
-                      className={`rounded-2xl border-2 p-3 text-center font-display text-xs font-bold transition-all ${
-                        titleInput === t
+                      className={`rounded-2xl border-2 p-3 text-center font-display text-xs font-bold transition-all ${titleInput === t
                           ? "border-primary bg-primary-soft text-primary-deep shadow-sm"
                           : "border-border bg-card text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {t}
                     </button>
@@ -707,11 +659,7 @@ function Profile() {
         </div>
       )}
 
-      {/* MODAL: Comprehensive Letterbox Sound Studio */}
-      <SoundStudioModal
-        isOpen={showAudioModal}
-        onClose={() => setShowAudioModal(false)}
-      />
+
 
       {/* MODAL: Reminders */}
       {showRemindersModal && (
@@ -747,14 +695,12 @@ function Profile() {
                     toggleReminders();
                     toast.success("Reminder status updated");
                   }}
-                  className={`press h-7 w-12 rounded-full p-0.5 border-2 border-border transition-colors ${
-                    settings.remindersEnabled ? "bg-primary" : "bg-muted"
-                  }`}
+                  className={`press h-7 w-12 rounded-full p-0.5 border-2 border-border transition-colors ${settings.remindersEnabled ? "bg-primary" : "bg-muted"
+                    }`}
                 >
                   <div
-                    className={`size-5 rounded-full bg-card shadow transition-transform ${
-                      settings.remindersEnabled ? "translate-x-5" : "translate-x-0"
-                    }`}
+                    className={`size-5 rounded-full bg-card shadow transition-transform ${settings.remindersEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>
@@ -765,31 +711,83 @@ function Profile() {
                     Preferred Reminder Time
                   </p>
                   <div className="mt-2 space-y-2">
-                    {REMINDER_TIMES.map((item) => (
-                      <button
-                        key={item.time}
-                        type="button"
-                        onClick={() => {
-                          setSelectedReminderTime(item.time);
-                          playPop(settings.soundEnabled);
-                        }}
-                        className={`press flex w-full items-center justify-between rounded-2xl border-2 p-3 text-xs font-bold transition-all ${
-                          selectedReminderTime === item.time
-                            ? "border-primary bg-primary-soft text-primary-deep"
-                            : "border-border bg-card text-foreground"
-                        }`}
-                      >
-                        <span>{item.label}</span>
-                        <span>{item.time}</span>
-                      </button>
-                    ))}
+                    {reminderSlots.map((item) => {
+                      const isSelected = selectedSlotId === item.id;
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            setSelectedSlotId(item.id);
+                            playPop(settings.soundEnabled);
+                          }}
+                          className={`press flex w-full items-center justify-between rounded-2xl border-2 p-3 text-xs font-bold transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-primary bg-primary-soft text-primary-deep"
+                              : "border-border bg-card text-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className={`size-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                isSelected
+                                  ? "border-primary bg-primary"
+                                  : "border-muted-foreground/40 bg-card"
+                              }`}
+                            >
+                              {isSelected && <span className="size-1.5 rounded-full bg-white" />}
+                            </span>
+                            <span>{item.label}</span>
+                          </div>
+
+                          <div
+                            className="flex items-center gap-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="time"
+                              value={item.time24}
+                              onChange={(e) => {
+                                const newTime24 = e.target.value;
+                                if (newTime24) {
+                                  const formatted = to12HourFormat(newTime24);
+                                  const updated = reminderSlots.map((r) =>
+                                    r.id === item.id
+                                      ? { ...r, time24: newTime24, time: formatted }
+                                      : r
+                                  );
+                                  setReminderSlots(updated);
+                                  localStorage.setItem(
+                                    "letterbox_custom_reminder_slots",
+                                    JSON.stringify(updated)
+                                  );
+                                }
+                              }}
+                              className="rounded-xl border border-border bg-card px-2.5 py-1 text-xs font-bold text-foreground outline-none focus:border-primary cursor-pointer shadow-xs"
+                              title="Click to customize time"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               <button
                 type="button"
-                onClick={() => setShowRemindersModal(false)}
+                onClick={() => {
+                  localStorage.setItem(
+                    "letterbox_custom_reminder_slots",
+                    JSON.stringify(reminderSlots)
+                  );
+                  localStorage.setItem(
+                    "letterbox_selected_reminder_slot_id",
+                    selectedSlotId
+                  );
+                  playPop(settings.soundEnabled);
+                  toast.success(`Reminder set for ${activeReminder.label} at ${activeReminder.time}`);
+                  setShowRemindersModal(false);
+                }}
                 className="press w-full rounded-3xl bg-primary py-3.5 font-display font-bold text-primary-foreground shadow-pop active:translate-y-1"
               >
                 Save
@@ -871,11 +869,10 @@ function Profile() {
                           setDailyLimit(mins);
                           playPop(settings.soundEnabled);
                         }}
-                        className={`flex-1 rounded-2xl border-2 py-2.5 font-display text-xs font-bold transition-all ${
-                          dailyLimit === mins
+                        className={`flex-1 rounded-2xl border-2 py-2.5 font-display text-xs font-bold transition-all ${dailyLimit === mins
                             ? "border-primary bg-primary-soft text-primary-deep"
                             : "border-border bg-card text-foreground"
-                        }`}
+                          }`}
                       >
                         {mins}m
                       </button>
@@ -898,11 +895,10 @@ function Profile() {
                           setAllowanceAmount(amt);
                           playPop(settings.soundEnabled);
                         }}
-                        className={`flex-1 rounded-2xl border-2 py-2.5 font-display text-xs font-bold transition-all ${
-                          allowanceAmount === amt
+                        className={`flex-1 rounded-2xl border-2 py-2.5 font-display text-xs font-bold transition-all ${allowanceAmount === amt
                             ? "border-primary bg-primary-soft text-primary-deep"
                             : "border-border bg-card text-foreground"
-                        }`}
+                          }`}
                       >
                         KES {amt}
                       </button>
@@ -922,14 +918,12 @@ function Profile() {
                   <button
                     type="button"
                     onClick={() => setEmailReports(!emailReports)}
-                    className={`h-6 w-11 rounded-full p-0.5 border-2 border-border transition-colors ${
-                      emailReports ? "bg-primary" : "bg-muted"
-                    }`}
+                    className={`h-6 w-11 rounded-full p-0.5 border-2 border-border transition-colors ${emailReports ? "bg-primary" : "bg-muted"
+                      }`}
                   >
                     <div
-                      className={`size-4 rounded-full bg-card shadow transition-transform ${
-                        emailReports ? "translate-x-5" : "translate-x-0"
-                      }`}
+                      className={`size-4 rounded-full bg-card shadow transition-transform ${emailReports ? "translate-x-5" : "translate-x-0"
+                        }`}
                     />
                   </button>
                 </div>
@@ -1000,14 +994,12 @@ function Profile() {
                 <button
                   type="button"
                   onClick={() => setPublicLeaderboard(!publicLeaderboard)}
-                  className={`h-6 w-11 rounded-full p-0.5 border-2 border-border transition-colors ${
-                    publicLeaderboard ? "bg-primary" : "bg-muted"
-                  }`}
+                  className={`h-6 w-11 rounded-full p-0.5 border-2 border-border transition-colors ${publicLeaderboard ? "bg-primary" : "bg-muted"
+                    }`}
                 >
                   <div
-                    className={`size-4 rounded-full bg-card shadow transition-transform ${
-                      publicLeaderboard ? "translate-x-5" : "translate-x-0"
-                    }`}
+                    className={`size-4 rounded-full bg-card shadow transition-transform ${publicLeaderboard ? "translate-x-5" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>
@@ -1020,14 +1012,12 @@ function Profile() {
                 <button
                   type="button"
                   onClick={() => setFriendCheers(!friendCheers)}
-                  className={`h-6 w-11 rounded-full p-0.5 border-2 border-border transition-colors ${
-                    friendCheers ? "bg-primary" : "bg-muted"
-                  }`}
+                  className={`h-6 w-11 rounded-full p-0.5 border-2 border-border transition-colors ${friendCheers ? "bg-primary" : "bg-muted"
+                    }`}
                 >
                   <div
-                    className={`size-4 rounded-full bg-card shadow transition-transform ${
-                      friendCheers ? "translate-x-5" : "translate-x-0"
-                    }`}
+                    className={`size-4 rounded-full bg-card shadow transition-transform ${friendCheers ? "translate-x-5" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>

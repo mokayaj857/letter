@@ -621,12 +621,12 @@ export function useUserStore() {
       updatedAccounts = currentAccounts.map((a, idx) =>
         idx === existingIndex
           ? {
-              ...a,
-              name: resolvedName,
-              age,
-              avatar,
-              ...(pictureCode ? { pictureCode } : {}),
-            }
+            ...a,
+            name: resolvedName,
+            age,
+            avatar,
+            ...(pictureCode ? { pictureCode } : {}),
+          }
           : a
       );
     } else {

@@ -31,8 +31,7 @@ function initFirebaseAdmin() {
     } else if (process.env.FIREBASE_PROJECT_ID) {
       // Fallback to Application Default Credentials
       options = { projectId: process.env.FIREBASE_PROJECT_ID };
-      admin.initializeApp(options);
-      firebaseApp = admin.app();
+      firebaseApp = admin.initializeApp(options);
     } else {
       console.warn('⚠️  firebase-admin: no service account configured. Firebase token verification disabled.');
       return null;
