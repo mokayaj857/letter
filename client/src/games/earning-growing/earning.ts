@@ -1,4 +1,4 @@
-import { WordSearchPuzzle, QuizPuzzle } from "../types";
+import { WordSearchPuzzle, QuizPuzzle, CrosswordPuzzle } from "../types";
 
 export const earningWordSearch1: WordSearchPuzzle = {
   type: "wordsearch",
@@ -87,22 +87,22 @@ export const earningQuiz: QuizPuzzle = {
     {
       id: 1,
       question: "If you have a permanent job and receive a fixed amount of money every month, what is this payment called?",
-      options: ["Wage", "Salary", "Bonus", "Commission"],
+      options: ["Commission", "Salary", "Wage", "Bonus"],
       correctIndex: 1,
       explanation: "A salary is a fixed regular payment, typically agreed upon in an annual contract and paid monthly.",
     },
     {
       id: 2,
       question: "What do we call the extra money given to an employee as a reward for good performance, usually at the end of the year?",
-      options: ["Tip", "Bonus", "Pension", "Pocket Money"],
-      correctIndex: 1,
+      options: ["Tip", "Pension", "Bonus", "Pocket Money"],
+      correctIndex: 2,
       explanation: "A performance bonus rewards employees who surpass targets or contribute to company profits.",
     },
     {
       id: 3,
       question: "When a salesperson earns a percentage of the total sales they make, that income is called?",
-      options: ["Interest", "Rent", "Commission", "Side Hustle"],
-      correctIndex: 2,
+      options: ["Side Hustle", "Interest", "Rent", "Commission"],
+      correctIndex: 3,
       explanation: "Commission is incentive-based pay tied directly to the value of products or services sold.",
     },
     {
@@ -115,22 +115,22 @@ export const earningQuiz: QuizPuzzle = {
     {
       id: 5,
       question: "When you save money in a bank account, the bank pays you extra money over time called?",
-      options: ["Interest", "Royalties", "Grants", "Tips"],
-      correctIndex: 0,
+      options: ["Grants", "Interest", "Royalties", "Tips"],
+      correctIndex: 1,
       explanation: "Interest is the rate paid by financial institutions to depositors for holding funds in savings accounts.",
     },
     {
       id: 6,
       question: "Which term describes a small amount of money given by parents to children for their personal use?",
-      options: ["Salary", "Pocket Money", "Pension", "Allowance"],
-      correctIndex: 1,
+      options: ["Salary", "Pension", "Pocket Money", "Allowance"],
+      correctIndex: 2,
       explanation: "Pocket money teaches children money management and budgeting skills at an early age.",
     },
     {
       id: 7,
       question: "Jane has a full-time job but also sells clothes on the weekends to earn extra cash, that extra job is a?",
-      options: ["Side Hustle", "Social Security", "Dividend", "Wage"],
-      correctIndex: 0,
+      options: ["Social Security", "Wage", "Dividend", "Side Hustle"],
+      correctIndex: 3,
       explanation: "A side hustle is secondary employment or freelancing undertaken to augment primary income.",
     },
     {
@@ -143,16 +143,74 @@ export const earningQuiz: QuizPuzzle = {
     {
       id: 9,
       question: "After someone retires from working for many years, the regular monthly payment they receive to support themselves is called?",
-      options: ["Pension", "Bonus", "Gift", "Wage"],
-      correctIndex: 0,
+      options: ["Bonus", "Pension", "Gift", "Wage"],
+      correctIndex: 1,
       explanation: "Pension funds (like NSSF) provide steady retirement payouts accumulated over a career.",
     },
     {
       id: 10,
       question: "If you win a competition or a school challenge, the money or trophy you receive is called a?",
-      options: ["Salary", "Prize", "Pension", "Commission"],
-      correctIndex: 1,
+      options: ["Commission", "Salary", "Prize", "Pension"],
+      correctIndex: 2,
       explanation: "A prize is awarded as recognition and reward for exceptional competition performance.",
     },
+  ],
+};
+
+export const earningCrossword3: CrosswordPuzzle = {
+  type: "crossword",
+  id: "eg-earning-cw3",
+  title: "Types of Income: Puzzle 3",
+  topic: "Earning & Growing Money",
+  instruction: "Fill hustle, freelance, and prize words from the book.",
+  rows: 12,
+  cols: 14,
+  wordBank: ["Salary", "Prize", "Grants", "Charity", "Hustle", "Business", "Pocket Money", "Freelance"],
+  acrossClues: [
+    { number: 1, clue: "A secondary job you do after school or work to earn extra cash.", answer: "HUSTLE", row: 1, col: 0, direction: "across" },
+    { number: 4, clue: "What you win for coming first in a competition that sometimes involves money.", answer: "PRIZE", row: 4, col: 0, direction: "across" },
+    { number: 5, clue: "Work you do independently for different clients instead of one employer.", answer: "FREELANCE", row: 7, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 2, clue: "Government money given to start a project, not a loan you must repay.", answer: "GRANTS", row: 0, col: 10, direction: "down" },
+    { number: 3, clue: "Small cash parents give for snacks or personal use.", answer: "POCKETMONEY", row: 0, col: 2, direction: "down" },
+  ],
+};
+
+export const earningCrossword4: CrosswordPuzzle = {
+  type: "crossword",
+  id: "eg-earning-cw4",
+  title: "Types of Income: Puzzle 4",
+  topic: "Earning & Growing Money",
+  instruction: "Fill royalties, cashback, pension, and side-hustle clues.",
+  rows: 12,
+  cols: 16,
+  wordBank: ["Revenue", "Side Hustle", "Cashback", "Royalties", "Tax", "Bank", "Pension", "Social Security"],
+  acrossClues: [
+    { number: 4, clue: "A government safety net that provides financial support to those in need or the elderly.", answer: "SOCIALSECURITY", row: 2, col: 0, direction: "across" },
+    { number: 5, clue: "A secondary job you do after work to earn extra cash, like selling thrifted clothes on Instagram.", answer: "SIDEHUSTLE", row: 6, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "Payments made to creators for the ongoing use of their intellectual property.", answer: "ROYALTIES", row: 0, col: 14, direction: "down" },
+    { number: 2, clue: "A small percentage of money returned to your wallet after paying via apps like Loop.", answer: "CASHBACK", row: 0, col: 12, direction: "down" },
+    { number: 3, clue: "Regular payments received by retirees after they stop working, often from the NSSF.", answer: "PENSION", row: 3, col: 4, direction: "down" },
+  ],
+};
+
+export const earningQuiz2: QuizPuzzle = {
+  type: "quiz",
+  id: "eg-earning-quiz2",
+  title: "Types of Income: Quiz 2",
+  topic: "Earning & Growing Money",
+  instruction: "Interest, grants, royalties, and passive income from the book.",
+  questions: [
+    { id: 1, question: "Otieno works 8 hours a day at a cyber café and is paid every evening based on hours worked. This income is a?", options: ["Royalty", "Salary", "Dividend", "Wage"], correctIndex: 3, explanation: "Wages are paid by the hour or day." },
+    { id: 2, question: "Wanjiku’s sister receives the same amount on the 28th of every month. She earns a?", options: ["Salary", "Commission", "Grant", "Tip"], correctIndex: 0, explanation: "A salary is a fixed monthly payment." },
+    { id: 3, question: "Moraa sells thrifted clothes on TikTok. After costs, the extra she keeps is her?", options: ["Interest", "Profit", "Royalty", "Pension"], correctIndex: 1, explanation: "Profit is revenue minus costs." },
+    { id: 4, question: "When Kibet pays with Loop and gets 10% back, that money is called?", options: ["Allowance", "Interest", "Cashback", "Loyalty Reward"], correctIndex: 2, explanation: "Cashback returns a slice of what you spent." },
+    { id: 5, question: "A musician earns money every time her song is played on radio. That is?", options: ["Wage", "Pension", "Commission", "Royalties"], correctIndex: 3, explanation: "Royalties pay creators when their work is used." },
+    { id: 6, question: "If Mutua saves 500 shillings and later finds 550, the extra 50 shillings is?", options: ["Interest", "Pocket Money", "Prize", "Dividend"], correctIndex: 0, explanation: "The bank paid interest on his savings." },
+    { id: 7, question: "Which of these is a passive form of income because Achieng doesn’t have to work every day to earn it?", options: ["Salary", "Rental Income", "YouTube Videos", "Tips"], correctIndex: 1, explanation: "Rent can keep arriving after the house is already let." },
+    { id: 8, question: "Baraka receives KES 50,000 from the government to start a repair shop. This one-time support is a?", options: ["Bonus", "Cashback", "Grant", "Salary"], correctIndex: 2, explanation: "A grant is support you do not repay like a loan." },
   ],
 };

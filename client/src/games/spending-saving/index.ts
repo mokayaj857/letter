@@ -7,3 +7,5 @@ export * from "./credit-loans";
 export * from "./taxes";
 export * from "./digital-economy";
 export * from "./activities";
+export * from "./banking-cryptograms";
+export * from "./video-games";

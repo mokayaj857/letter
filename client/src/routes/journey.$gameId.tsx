@@ -81,8 +81,8 @@ const QUIZ_DATA = [
     question: "You receive pocket money. What is the smartest first action?",
     options: [
       { text: "Spend all immediately on treats", correct: false },
-      { text: "Save a portion in your piggy bank", correct: true },
       { text: "Hide it and forget where it is", correct: false },
+      { text: "Save a portion in your piggy bank", correct: true },
     ],
     explanation: "Saving first helps you reach bigger goals over time.",
   },
@@ -90,16 +90,16 @@ const QUIZ_DATA = [
     question: "Which of the following is an essential NEED?",
     options: [
       { text: "A brand new video game", correct: false },
-      { text: "School books and lunch", correct: true },
       { text: "A third pair of sneakers", correct: false },
+      { text: "School books and lunch", correct: true },
     ],
     explanation: "Needs are essential items required for learning, health and safety.",
   },
   {
     question: "Store A sells 2 notebooks for KES 100. Store B sells 1 for KES 60. Which is better?",
     options: [
-      { text: "Store A (KES 50 each)", correct: true },
       { text: "Store B (KES 60 each)", correct: false },
+      { text: "Store A (KES 50 each)", correct: true },
       { text: "Both are identical", correct: false },
     ],
     explanation: "Comparing unit prices ensures you get the best value.",

@@ -1,4 +1,4 @@
-import { WordSearchPuzzle, QuizPuzzle } from "../types";
+import { WordSearchPuzzle, QuizPuzzle, CrosswordPuzzle } from "../types";
 
 export const foundationsWordSearch1: WordSearchPuzzle = {
   type: "wordsearch",
@@ -99,43 +99,43 @@ export const foundationsQuiz: QuizPuzzle = {
     {
       id: 2,
       question: "A plan that helps you decide how much money you will spend and how much you will save is a?",
-      options: ["Budget", "Market", "Sale", "Backpay"],
-      correctIndex: 0,
+      options: ["Backpay", "Market", "Budget", "Sale"],
+      correctIndex: 2,
       explanation: "A budget is a personal financial plan that tracks income, spending, and savings goals.",
     },
     {
       id: 3,
       question: "Money that you put aside for the future instead of spending it immediately is known as?",
-      options: ["Expense", "Savings", "Loss", "Trade"],
-      correctIndex: 1,
+      options: ["Loss", "Trade", "Expense", "Savings"],
+      correctIndex: 3,
       explanation: "Savings represent money set aside for emergencies, future purchases, and long-term security.",
     },
     {
       id: 4,
       question: "When a shopkeeper sells an item for more than they bought it for, the extra money they make is?",
-      options: ["Profit", "Loss", "Price", "Allowance"],
+      options: ["Profit", "Allowance", "Price", "Loss"],
       correctIndex: 0,
       explanation: "Profit is the financial gain made when sales revenue exceeds total business costs.",
     },
     {
       id: 5,
       question: "Any money that you spend on things like bus fare, snacks, or airtime is considered an?",
-      options: ["Expense", "Income", "Asset", "Investment"],
-      correctIndex: 0,
+      options: ["Income", "Expense", "Investment", "Asset"],
+      correctIndex: 1,
       explanation: "An expense is money paid out to purchase goods, everyday services, or cover running costs.",
     },
     {
       id: 6,
       question: "All the money that a person or a business receives from working or selling products is their?",
-      options: ["Income", "Balance", "Wealth", "Debt"],
-      correctIndex: 0,
+      options: ["Balance", "Wealth", "Income", "Debt"],
+      correctIndex: 2,
       explanation: "Income encompasses all money earned through wages, sales, investments, or business activities.",
     },
     {
       id: 7,
       question: "If a business spends more money than it earns, it is facing a?",
-      options: ["Profit", "Loss", "Gain", "Revenue"],
-      correctIndex: 1,
+      options: ["Profit", "Gain", "Revenue", "Loss"],
+      correctIndex: 3,
       explanation: "A loss occurs when total expenses are greater than the revenue brought in.",
     },
     {
@@ -148,16 +148,56 @@ export const foundationsQuiz: QuizPuzzle = {
     {
       id: 9,
       question: "To get money in exchange for your hard work or a service you provide is to:",
-      options: ["Spend", "Earn", "Lose", "Give"],
+      options: ["Lose", "Earn", "Give", "Spend"],
       correctIndex: 1,
       explanation: "Earning means receiving financial compensation in exchange for labor, skills, or goods provided.",
     },
     {
       id: 10,
       question: "The total amount of money left in your bank account or M-PESA after a transaction is your?",
-      options: ["Balance", "Price", "Revenue", "Salary"],
-      correctIndex: 0,
+      options: ["Price", "Revenue", "Balance", "Salary"],
+      correctIndex: 2,
       explanation: "Your account balance represents the remaining available funds after deposits and withdrawals.",
     },
+  ],
+};
+
+export const foundationsCrossword3: CrosswordPuzzle = {
+  type: "crossword",
+  id: "mb-foundations-cw3",
+  title: "Foundations of Money: Puzzle 3",
+  topic: "Money Basics",
+  instruction: "Fill the record-keeping and cash words from the book.",
+  rows: 10,
+  cols: 12,
+  wordBank: ["Accounts", "Track", "Balance", "Coins", "Books", "Priority", "Record", "Security"],
+  acrossClues: [
+    { number: 1, clue: "Metallic currency, like the 1, 5, 10, or 20 shilling pieces.", answer: "COINS", row: 1, col: 0, direction: "across" },
+    { number: 4, clue: "What you do so you do not misuse cash: write down every shilling.", answer: "TRACK", row: 4, col: 0, direction: "across" },
+    { number: 5, clue: "The total left in your account after a transaction.", answer: "BALANCE", row: 7, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 2, clue: "A written note of a purchase or payment so you can prove it later.", answer: "RECORD", row: 0, col: 8, direction: "down" },
+    { number: 3, clue: "Putting the most important expenses first.", answer: "PRIORITY", row: 0, col: 2, direction: "down" },
+  ],
+};
+
+export const foundationsCrossword4: CrosswordPuzzle = {
+  type: "crossword",
+  id: "mb-foundations-cw4",
+  title: "Foundations of Money: Puzzle 4",
+  topic: "Money Basics",
+  instruction: "Fill income, salary, notes, and price clues.",
+  rows: 10,
+  cols: 12,
+  wordBank: ["Receipt", "Income", "Notes", "Salary", "Cash", "Price", "Pay", "Plan"],
+  acrossClues: [
+    { number: 1, clue: "The money you earn from working a job or from your business activities.", answer: "INCOME", row: 1, col: 0, direction: "across" },
+    { number: 4, clue: "Fixed monthly pay, usually for an individual’s professional work.", answer: "SALARY", row: 4, col: 0, direction: "across" },
+    { number: 5, clue: "Physical money in the form of notes and coins.", answer: "CASH", row: 7, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 2, clue: "Paper money; in Kenya, these range from 50 to 1,000 shillings.", answer: "NOTES", row: 0, col: 8, direction: "down" },
+    { number: 3, clue: "The amount you verify before buying a smokie, a soda, or boarding a matatu.", answer: "PRICE", row: 0, col: 3, direction: "down" },
   ],
 };

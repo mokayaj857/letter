@@ -1,0 +1,123 @@
+import { CryptogramPuzzle, QuizPuzzle, ActivityPuzzle } from "../types";
+import { cryptoItem } from "../crypto";
+
+export const bankingCryptogram: CryptogramPuzzle = {
+  type: "cryptogram",
+  id: "sw-banking-crypto",
+  title: "Banking: A1Z26 Cryptogram",
+  topic: "Spending Wisely",
+  instruction: "Decode banking and mobile-money words with A1Z26.",
+  cipherType: "A1Z26",
+  items: [
+    cryptoItem(1, "A formal cooperative where members save and take loans together.", "SACCO"),
+    cryptoItem(2, "Money you set aside for future use.", "SAVINGS"),
+    cryptoItem(3, "The machine where you insert your card to withdraw cash.", "ATM"),
+    cryptoItem(4, "The secret 4-digit code you must never share with anyone.", "PIN"),
+    cryptoItem(5, "Managing your account using a USSD code like *123# or an app.", "MOBILEBANKING"),
+    cryptoItem(6, "To negotiate a lower price at the market when shopping for clothes or shoes.", "BARGAIN"),
+    cryptoItem(7, "A document showing all money coming in and going out of your bank account.", "STATEMENT"),
+    cryptoItem(8, "The person behind the counter at the bank who helps you with specific transactions.", "TELLER"),
+    cryptoItem(9, "When a scammer sends a fake link to fish for your login details.", "PHISHING"),
+    cryptoItem(10, "The process of proving who you are using your ID or face.", "VERIFICATION"),
+    cryptoItem(11, "The SMS you get the moment there is a transaction on your bank account.", "ALERT"),
+    cryptoItem(12, "The business number used to pay bills like KPLC or school fees via phone.", "PAYBILL"),
+    cryptoItem(13, "What you do immediately your card is stolen or lost.", "BLOCK"),
+    cryptoItem(14, "An informal group where friends, usually women, save together towards a common goal.", "CHAMA"),
+    cryptoItem(15, "An app like M-Pesa that keeps your money on your phone.", "DIGITALWALLET"),
+    cryptoItem(16, "The small chip in your phone that connects you to the network.", "SIMCARD"),
+    cryptoItem(17, "A One-Time Password sent to your phone to verify a transaction.", "OTP"),
+    cryptoItem(18, "Illegal activity intended to result in financial gain for the perpetrator.", "FRAUD"),
+    cryptoItem(19, "The final message detailing the success of your transaction.", "CONFIRMATION"),
+    cryptoItem(20, "The money the bank pays you for depositing your money with them for long periods.", "INTEREST"),
+    cryptoItem(21, "To move money from one account to another account.", "TRANSFER"),
+    cryptoItem(22, "A piece of paper or SMS that is a record of your transaction.", "RECEIPT"),
+    cryptoItem(23, "To take money out of your account so as to have cash in hand.", "WITHDRAW"),
+    cryptoItem(24, "Your personal folder at a bank where your money stays.", "ACCOUNT"),
+  ],
+};
+
+export const bankingCryptoQuiz: QuizPuzzle = {
+  type: "quiz",
+  id: "sw-banking-crypto-quiz",
+  title: "Banking Cryptogram: Quiz 1",
+  topic: "Spending Wisely",
+  instruction: "Spot scams, chamas, interest, and account safety.",
+  questions: [
+    { id: 1, question: "Someone from an unknown number calls saying they are from The Bank and asks for your M-PESA code. This is most likely a?", options: ["Verification", "Scam", "Deposit", "Bargain"], correctIndex: 1, explanation: "A real bank will never ask for your PIN or M-Pesa code." },
+    { id: 2, question: "You and five friends save 500/- every week and give the total to one person in a merry-go-round. What have you just started?", options: ["An Equity", "A Digital Wallet", "A Chama", "A Phishing trip"], correctIndex: 2, explanation: "A chama is an informal savings group." },
+    { id: 3, question: "What is the name of the extra money the bank gives you as a reward for keeping savings with them?", options: ["Chums", "Balance", "Debt", "Interest"], correctIndex: 3, explanation: "Interest is paid on savings deposits." },
+    { id: 4, question: "Your phone has been stolen at the matatu stage. What is the first thing you should do regarding your bank account?", options: ["Block the account", "Bargain for a new phone", "Check your Balance", "Wait for an Alert"], correctIndex: 0, explanation: "Block the SIM and accounts immediately so nobody can move your money." },
+    { id: 5, question: "A strange link arrives in your DM promising Free 5,000/- Airtime if you enter your login details. This trick is called?", options: ["Mobile Banking", "Phishing", "A Hustle", "Confirmation"], correctIndex: 1, explanation: "Phishing uses fake links to steal logins." },
+  ],
+};
+
+export const teenAccountActivity: ActivityPuzzle = {
+  type: "activity",
+  id: "sw-teen-account-activity",
+  title: "Opening a Teen Account",
+  topic: "Spending Wisely",
+  subtype: "home_treasure_hunt",
+  instruction: "Walk through what a Kenyan teen needs before opening a savings account.",
+  config: {
+    steps: [
+      { step: 1, title: "List the documents", description: "Write the documents a bank may ask for: birth certificate or student ID, parent/guardian ID, and a passport photo." },
+      { step: 2, title: "Pick an account type", description: "Choose Junior, Teen, Student, or Basic and note one perk such as no monthly fee or a debit card." },
+      { step: 3, title: "Safety rules", description: "Write three rules: never share your PIN, check SMS alerts, and tell a grown-up before sending money to a stranger." },
+    ],
+  },
+};
+
+export const bankAccountsCryptogram: CryptogramPuzzle = {
+  type: "cryptogram",
+  id: "sw-bank-accounts-crypto",
+  title: "Types of Bank Accounts: A1Z26 Cryptogram",
+  topic: "Spending Wisely",
+  instruction: "Decode account types with A1Z26.",
+  cipherType: "A1Z26",
+  items: [
+    cryptoItem(1, "Also known as Child Savings Accounts, these accounts are fully managed by a parent or guardian.", "JUNIOR"),
+    cryptoItem(2, "These accounts allow the teen more independence, such as a debit card. Examples include KCB Leo and Equity Teen.", "TEEN"),
+    cryptoItem(3, "The account employers send monthly pay into; sometimes used to get emergency loans.", "SALARY"),
+    cryptoItem(4, "A simple bank account, usually with low or no monthly fees, covering basic needs.", "BASIC"),
+    cryptoItem(5, "Considered a spending account, used for daily transactions with a debit card or app.", "CHECKING"),
+    cryptoItem(6, "Similar to a checking account, designed for frequent transactions, often used by businesses.", "CURRENT"),
+    cryptoItem(7, "An account managed entirely through a website or app rather than a physical branch.", "ONLINE"),
+    cryptoItem(8, "A bank account that enables services like M-Pesa for instant transfers and withdrawals.", "MOBILE"),
+    cryptoItem(9, "A special bank account for students, often with no monthly fees or a free debit card.", "STUDENT"),
+    cryptoItem(10, "Designed for accumulating money over time while earning modest interest, with high liquidity.", "SAVINGS"),
+    cryptoItem(11, "A hybrid account that acts like a mix of savings and checking and may require a minimum balance.", "MONEYMARKET"),
+    cryptoItem(12, "An account where you leave money for a set time like 6 months or 2 years for a guaranteed higher rate.", "FIXEDDEPOSIT"),
+    cryptoItem(13, "An informal name for a savings account set aside strictly for unexpected bills.", "EMERGENCYFUND"),
+    cryptoItem(14, "A savings account that pays a much higher interest rate than a normal one.", "HIGHYIELD"),
+    cryptoItem(15, "An account used specifically to buy stocks, bonds, or mutual funds.", "INVESTMENT"),
+    cryptoItem(16, "A very long-term account designed to save money for when a person stops working.", "RETIREMENT"),
+    cryptoItem(17, "An account opened by an adult for a minor until the child reaches legal age.", "CUSTODIAL"),
+    cryptoItem(18, "A legal arrangement where money is held by a trustee for the benefit of another.", "TRUST"),
+    cryptoItem(19, "An account specifically for running a company or side hustle.", "BUSINESS"),
+    cryptoItem(20, "An account that holds money in a different currency like US dollars or euros.", "FOREIGNCURRENCY"),
+    cryptoItem(21, "A bank account owned by two or more individuals, such as siblings or spouses.", "JOINT"),
+    cryptoItem(22, "A bank account that follows Islamic law instead of earning interest.", "SHARIA"),
+    cryptoItem(23, "A flexible investment account where you can call the bank to withdraw money with short notice.", "CALLDEPOSIT"),
+    cryptoItem(24, "A bank account held in a country where you don't actually live.", "OFFSHORE"),
+  ],
+};
+
+export const bankAccountsQuiz: QuizPuzzle = {
+  type: "quiz",
+  id: "sw-bank-accounts-quiz",
+  title: "Types of Bank Accounts: Quiz",
+  topic: "Spending Wisely",
+  instruction: "Choose the right account for saving, spending, and emergencies.",
+  questions: [
+    { id: 1, question: "What is a primary reason a person opens a bank account?", options: ["To spend money faster", "To avoid paying taxes", "To keep money safe and earn interest", "To hide money"], correctIndex: 2, explanation: "Banks keep money safer than a drawer and can pay interest." },
+    { id: 2, question: "Which type of bank account is typically used for saving money and earns interest?", options: ["Current Account", "Business Account", "Joint Account", "Savings Account"], correctIndex: 3, explanation: "Savings accounts are built for growing money slowly." },
+    { id: 3, question: "What does interest mean in the context of a bank account?", options: ["Extra money the bank pays you for keeping your money there", "The initial amount you deposit", "A penalty for withdrawing money", "A fee the bank charges you"], correctIndex: 0, explanation: "Interest is the bank’s reward for using your deposit." },
+    { id: 4, question: "What is an ATM used for?", options: ["Buying things online", "Withdrawing cash and checking your balance", "Making international calls", "Sending emails"], correctIndex: 1, explanation: "ATMs let you take out cash and check balances." },
+    { id: 5, question: "Why is it important to keep your ATM PIN a secret?", options: ["So the bank knows you can remember it", "It’s not important", "To prevent unauthorized access to your money", "To make it harder to withdraw money"], correctIndex: 2, explanation: "Anyone with your PIN can empty the account." },
+    { id: 6, question: "What is a Fixed Deposit account used for?", options: ["Everyday spending", "Paying bills automatically", "Receiving your salary", "Saving money that you don't need access to for a set period"], correctIndex: 3, explanation: "You lock the money for a term in exchange for higher interest." },
+    { id: 7, question: "What is a joint account?", options: ["An account held by two or more people", "An account only for businesses", "An account for children under 18", "An account with no fees"], correctIndex: 0, explanation: "Everyone named on a joint account can use the funds." },
+    { id: 8, question: "Why might a bank ask for identification when you open an account?", options: ["To make sure you are an adult", "To protect against fraud and comply with regulations", "To see where you live", "To check your school grades"], correctIndex: 1, explanation: "ID checks stop fraud and follow KYC rules." },
+    { id: 9, question: "What is a bank statement?", options: ["The amount of money you have at any time", "A type of savings account", "A document that lists all your transactions in an account", "A card used to withdraw money from an ATM"], correctIndex: 2, explanation: "Statements list deposits, withdrawals, and fees." },
+    { id: 10, question: "A family wants to save money specifically for medical emergencies. Which account should they open?", options: ["Current Account", "Offshore Account", "Business Account", "Emergency Fund Account"], correctIndex: 3, explanation: "An emergency fund is for unexpected bills." },
+  ],
+};
