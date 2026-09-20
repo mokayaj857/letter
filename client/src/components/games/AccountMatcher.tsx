@@ -21,6 +21,25 @@ interface Props {
   onComplete: (xp: number, coins: number) => void;
 }
 
+function shuffleWithSeed(items: string[], seed: string) {
+  const next = [...items];
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  for (let i = next.length - 1; i > 0; i--) {
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    const j = Math.abs(h) % (i + 1);
+    const a = next[i];
+    const b = next[j];
+    if (a === undefined || b === undefined) continue;
+    next[i] = b;
+    next[j] = a;
+  }
+  return next;
+}
+
 export const AccountMatcher: React.FC<Props> = ({
   title,
   instruction,
@@ -31,6 +50,14 @@ export const AccountMatcher: React.FC<Props> = ({
   const { settings } = useUserStore();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [index, setIndex] = useState(0);
+
+  const mixedByQuestion = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    scenarios.forEach((s, i) => {
+      map[s.id] = shuffleWithSeed(accountTypes, `${s.id}-${s.correctAccount}-${i}`);
+    });
+    return map;
+  }, [accountTypes, scenarios]);
 
   const matchedCount = useMemo(
     () => scenarios.filter((s) => answers[s.id] === s.correctAccount).length,
@@ -105,7 +132,7 @@ export const AccountMatcher: React.FC<Props> = ({
         className="mt-1.5 w-full rounded-2xl border-2 border-border bg-card px-3 py-3 font-display text-sm font-bold text-foreground outline-none focus:border-primary"
       >
         <option value="">Choose one…</option>
-        {accountTypes.map((acc) => (
+        {(mixedByQuestion[sc.id] || accountTypes).map((acc) => (
           <option key={acc} value={acc}>
             {acc}
           </option>
