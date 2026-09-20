@@ -224,9 +224,51 @@ function syncWithBackend(promise: Promise<{ success: boolean; data?: any }>): vo
 let globalState: LetterboxState = cloneState(DEFAULT_STATE);
 const listeners = new Set<() => void>();
 
+const LOCAL_PROGRESS_KEY = "letterbox-offline-progress";
+
+function persistLocalProgress() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      LOCAL_PROGRESS_KEY,
+      JSON.stringify({
+        user: globalState.user,
+        gameProgress: globalState.gameProgress,
+        goal: globalState.goal,
+        ownedItems: globalState.ownedItems,
+        badges: globalState.badges,
+      })
+    );
+  } catch {
+    // Ignore quota / private-mode failures.
+  }
+}
+
+function restoreLocalProgress() {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(LOCAL_PROGRESS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Partial<LetterboxState>;
+    globalState = {
+      ...globalState,
+      user: { ...globalState.user, ...(parsed.user || {}) },
+      gameProgress: { ...globalState.gameProgress, ...(parsed.gameProgress || {}) },
+      goal: { ...globalState.goal, ...(parsed.goal || {}) },
+      ownedItems: parsed.ownedItems || globalState.ownedItems,
+      badges: parsed.badges || globalState.badges,
+    };
+  } catch {
+    // Ignore corrupt local cache.
+  }
+}
+
 function emitChange() {
+  persistLocalProgress();
   listeners.forEach((listener) => listener());
 }
+
+restoreLocalProgress();
 
 // Restore a previously signed-in Firebase session on app load, pulling the
 // authoritative player state from the backend instead of localStorage.
@@ -287,6 +329,26 @@ export function useUserStore() {
     };
     emitChange();
     playCoin(globalState.settings.soundEnabled);
+  }, []);
+
+  const spendCoins = useCallback((amount: number) => {
+    if (amount <= 0) return false;
+    if (globalState.user.coins < amount) return false;
+
+    globalState = {
+      ...globalState,
+      user: {
+        ...globalState.user,
+        coins: globalState.user.coins - amount,
+      },
+    };
+    emitChange();
+    playCoin(globalState.settings.soundEnabled);
+
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.spendCoins(amount));
+    }
+    return true;
   }, []);
 
   const addXp = useCallback((amount: number) => {
@@ -729,6 +791,7 @@ export function useUserStore() {
     // Actions
     updateProfile,
     addCoins,
+    spendCoins,
     addXp,
     setAvatar,
     toggleSound,

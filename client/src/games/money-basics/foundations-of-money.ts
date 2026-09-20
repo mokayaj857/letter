@@ -66,7 +66,7 @@ export const foundationsWordSearch2: WordSearchPuzzle = {
   ],
   grid: [
     ["I", "S", "T", "H", "P", "E", "P", "R", "O", "D", "U", "C", "T", "S"],
-    ["N", "N", "E", "M", "A", "R", "K", "E", "T", "E", "E", "E", "P", "L"],
+    ["N", "N", "E", "M", "A", "R", "K", "E", "T", "S", "E", "E", "P", "L"],
     ["U", "S", "A", "S", "E", "L", "L", "A", "D", "N", "O", "T", "E", "S"],
     ["A", "L", "S", "N", "L", "D", "R", "A", "M", "R", "L", "E", "R", "I"],
     ["C", "T", "A", "R", "T", "N", "R", "A", "S", "V", "R", "E", "C", "N"],
@@ -78,7 +78,7 @@ export const foundationsWordSearch2: WordSearchPuzzle = {
     ["H", "N", "R", "A", "E", "A", "U", "E", "R", "E", "R", "Y", "D", "P"],
     ["S", "E", "C", "V", "R", "A", "S", "Y", "P", "N", "I", "K", "N", "Y"],
     ["A", "M", "E", "H", "N", "R", "V", "U", "T", "S", "E", "V", "N", "I"],
-    ["C", "R", "R", "T", "R", "E", "T", "N", "C", "S", "A", "T", "E", "T"],
+    ["C", "R", "R", "T", "R", "A", "D", "E", "C", "S", "A", "T", "E", "T"],
   ],
 };
 

@@ -133,6 +133,35 @@ exports.updateGoal = async (req, res) => {
 };
 
 /**
+ * POST /api/user/coins/spend
+ * Body: { amount }
+ * Deducts coins (game hints). Capped to keep the request honest.
+ */
+exports.spendCoins = async (req, res) => {
+  try {
+    const userId = await resolveUser(req);
+    if (!userId) return res.status(404).json({ success: false, message: 'User not found.' });
+
+    const amount = Number(req.body?.amount);
+    if (!Number.isFinite(amount) || amount < 1 || amount > 100) {
+      return res.status(400).json({ success: false, message: 'Invalid spend amount.' });
+    }
+
+    const [[u]] = await pool.execute('SELECT coins FROM users WHERE id = ?', [userId]);
+    if (!u || u.coins < amount) {
+      return res.status(400).json({ success: false, message: 'Not enough coins.' });
+    }
+
+    await pool.execute('UPDATE users SET coins = coins - ? WHERE id = ?', [amount, userId]);
+    const dashboard = await buildDashboard(userId);
+    res.json({ success: true, data: dashboard });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
  * POST /api/user/items
  * Body: { itemId, cost }
  * Buys an item: deduct coins, add to owned_items, set equipped.

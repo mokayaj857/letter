@@ -59,7 +59,7 @@ export const taxesWordSearch2: WordSearchPuzzle = {
     "Public",
   ],
   grid: [
-    ["D", "R", "E", "E", "C", "Y", "T", "F", "X", "B", "I", "X", "I", "I"],
+    ["D", "S", "U", "B", "S", "I", "D", "Y", "X", "B", "I", "X", "I", "I"],
     ["T", "E", "E", "G", "X", "G", "O", "T", "E", "E", "N", "B", "E", "G"],
     ["A", "M", "A", "T", "I", "N", "U", "M", "A", "O", "R", "G", "I", "R"],
     ["R", "B", "T", "B", "I", "I", "X", "I", "Y", "I", "A", "I", "G", "O"],

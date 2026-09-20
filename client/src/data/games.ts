@@ -367,6 +367,7 @@ export const games: Game[] = [
     art: gameArt["young-hustler"],
     tint: "bg-sun",
     done: 0,
+    comingSoon: true,
     levels: [
       {
         title: "Startup Foundations & Strategy: Word Search",
@@ -480,7 +481,7 @@ export const games: Game[] = [
         gameData: bankingQuiz,
       },
       {
-        title: "Types of Bank Accounts: 21-Scenario Matcher",
+        title: "Piggy Vault Match-Up",
         kind: "activity",
         state: "locked",
         xp: 150,

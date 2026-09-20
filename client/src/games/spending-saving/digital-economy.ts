@@ -27,7 +27,7 @@ export const digitalEconomyWordSearch: WordSearchPuzzle = {
   grid: [
     ["D", "I", "G", "I", "T", "A", "L", "M", "A", "R", "K", "E", "T", "I"],
     ["T", "D", "A", "T", "A", "A", "N", "A", "L", "Y", "T", "I", "C", "S"],
-    ["Y", "M", "O", "N", "O", "C", "E", "E", "C", "R", "T", "N", "R", "E"],
+    ["G", "I", "G", "E", "C", "O", "N", "O", "M", "Y", "T", "N", "R", "E"],
     ["N", "C", "Y", "C", "P", "G", "P", "I", "G", "C", "A", "N", "V", "A"],
     ["Y", "K", "S", "O", "O", "I", "L", "O", "F", "T", "R", "O", "P", "E"],
     ["T", "A", "E", "E", "G", "C", "O", "D", "I", "N", "G", "D", "A", "H"],

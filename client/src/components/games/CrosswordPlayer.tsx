@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { CrosswordPuzzle, CrosswordClue } from "@/games/types";
-import { Check, Lightbulb } from "lucide-react";
 import { playPop, playSuccess, playError } from "@/lib/audio";
 import { triggerConfetti } from "@/lib/confetti";
 import { useUserStore } from "@/lib/userStore";
+import { toast } from "sonner";
+import { HINT_COST } from "@/lib/hints";
+import { HintButton } from "@/components/games/HintButton";
 
 interface Props {
   puzzle: CrosswordPuzzle;
@@ -12,7 +14,7 @@ interface Props {
 }
 
 export const CrosswordPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }) => {
-  const { settings } = useUserStore();
+  const { settings, spendCoins, user } = useUserStore();
 
   // Pre-calculate clues
   const allClues = [...puzzle.acrossClues, ...puzzle.downClues];
@@ -84,20 +86,64 @@ export const CrosswordPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }
     }
   };
 
+  const checkSolved = (letters: { [key: string]: string }) => {
+    for (const k of Object.keys(validCells)) {
+      const cell = validCells[k];
+      if (!cell || letters[k] !== cell.answer) return false;
+    }
+    return true;
+  };
+
   const handleHint = () => {
-    if (!activeClue) return;
+    if (!activeClue || isSolved) return;
     const isAcross = activeClue.direction === "across";
+    let hintKey: string | null = null;
+    let hintChar = "";
+    let hintIndex = -1;
+
     for (let i = 0; i < activeClue.answer.length; i++) {
       const r = isAcross ? activeClue.row : activeClue.row + i;
       const c = isAcross ? activeClue.col + i : activeClue.col;
       const key = getCellKey(r, c);
       const expectedChar = activeClue.answer[i];
       if (expectedChar && userLetters[key] !== expectedChar) {
-        setUserLetters((prev) => ({ ...prev, [key]: expectedChar }));
-        setHintsUsed((h) => h + 1);
-        playPop(settings.soundEnabled);
-        return;
+        hintKey = key;
+        hintChar = expectedChar;
+        hintIndex = i;
+        break;
       }
+    }
+
+    if (!hintKey || !hintChar) {
+      toast.message("This clue is already filled. Pick another clue.");
+      return;
+    }
+
+    if (user.coins < HINT_COST) {
+      playError(settings.soundEnabled);
+      toast.error(`Need ${HINT_COST} coins for a hint. You have ${user.coins}.`);
+      return;
+    }
+    if (!spendCoins(HINT_COST)) {
+      toast.error("Not enough coins for a hint.");
+      return;
+    }
+
+    const newLetters = { ...userLetters, [hintKey]: hintChar };
+    setUserLetters(newLetters);
+    setHintsUsed((h) => h + 1);
+    playPop(settings.soundEnabled);
+    toast.success(
+      `Hint: letter ${hintIndex + 1} of ${activeClue.number} ${activeClue.direction} is “${hintChar}”.`
+    );
+
+    if (checkSolved(newLetters)) {
+      setIsSolved(true);
+      playSuccess(settings.soundEnabled);
+      triggerConfetti();
+      setTimeout(() => {
+        onComplete(120, 35);
+      }, 700);
     }
   };
 
@@ -113,14 +159,7 @@ export const CrosswordPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }
             {puzzle.title}
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={handleHint}
-          className="flex items-center gap-1 text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 px-2.5 py-1.5 rounded-xl active:scale-95"
-        >
-          <Lightbulb className="size-3.5" />
-          <span>Hint ({hintsUsed})</span>
-        </button>
+        <HintButton onClick={handleHint} used={hintsUsed} disabled={isSolved} />
       </div>
 
       {/* Active Clue Banner */}

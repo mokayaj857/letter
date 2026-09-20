@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AccountMatcher } from "@/components/games/AccountMatcher";
 import { ActivityPuzzle } from "@/games/types";
 import { Check, ShoppingBag, Award, Sparkles, ArrowRight, ShieldCheck, DollarSign, Compass } from "lucide-react";
 import { playPop, playSuccess, playError } from "@/lib/audio";
@@ -21,8 +22,8 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
   // Subtype 1: KSh 8,000 School Budget Challenge
   const [selectedItems, setSelectedItems] = useState<{ [category: string]: any }>({});
 
-  // Subtype 2: Account Matcher
-  const [matcherAnswers, setMatcherAnswers] = useState<{ [scenarioId: string]: string }>({});
+  // Subtype 2: Account Matcher (rendered separately)
+
 
   // Subtype 3: Would You Rather
   const [wyrChoices, setWyrChoices] = useState<{ [scenarioId: string]: "A" | "B" }>({});
@@ -61,22 +62,6 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
   // 2. Account Matcher Logic
   const scenarios = activity.config?.scenarios || [];
   const accountTypes = activity.config?.accountTypes || [];
-  const isMatcherDone =
-    scenarios.length > 0 &&
-    scenarios.every((s: any) => matcherAnswers[s.id] === s.correctAccount);
-
-  const handleMatcherSelect = (scenarioId: string, accountName: string) => {
-    setMatcherAnswers((prev) => ({ ...prev, [scenarioId]: accountName }));
-    playPop(settings.soundEnabled);
-
-    // Check if correct
-    const targetScenario = scenarios.find((s: any) => s.id === scenarioId);
-    if (targetScenario?.correctAccount === accountName) {
-      playSuccess(settings.soundEnabled);
-    } else {
-      playError(settings.soundEnabled);
-    }
-  };
 
   // 3. Would You Rather Logic
   const wyrScenarios = activity.config?.scenarios || [];
@@ -114,6 +99,16 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col h-full select-none">
+      {activity.subtype === "account_matcher" ? (
+        <AccountMatcher
+          title={activity.title}
+          instruction={activity.instruction}
+          accountTypes={accountTypes}
+          scenarios={scenarios}
+          onComplete={onComplete}
+        />
+      ) : (
+        <>
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-border/50">
         <div>
@@ -221,80 +216,6 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
           >
             Submit Shopping Plan (+130 XP)
           </button>
-        </div>
-      )}
-
-      {/* --- SUBTYPE 2: 21-Scenario Account Matcher --- */}
-      {activity.subtype === "account_matcher" && (
-        <div className="flex-1 flex flex-col space-y-3 overflow-y-auto pr-1">
-          {scenarios.map((sc: any, sIdx: number) => {
-            const currentSelected = matcherAnswers[sc.id];
-            const isRight = currentSelected === sc.correctAccount;
-            const scenarioText = sc.text || sc.need || "";
-            const customerTitle = sc.customer || `Scenario #${sIdx + 1}`;
-
-            return (
-              <div
-                key={sc.id}
-                className={`p-3 rounded-2xl border-2 transition-all ${
-                  isRight
-                    ? "border-emerald-500 bg-emerald-500/5"
-                    : currentSelected
-                    ? "border-rose-500/60 bg-rose-500/5"
-                    : "border-border bg-card"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-display text-xs font-bold text-primary-deep">{customerTitle}</p>
-                  {isRight && (
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <Check className="size-3" strokeWidth={3} /> Matched
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-foreground/90 font-medium mt-1 leading-snug">{scenarioText}</p>
-
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {accountTypes.map((acc: string) => (
-                    <button
-                      key={acc}
-                      type="button"
-                      onClick={() => handleMatcherSelect(sc.id, acc)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${
-                        currentSelected === acc
-                          ? acc === sc.correctAccount
-                            ? "bg-emerald-600 border-emerald-600 text-white font-bold"
-                            : "bg-rose-600 border-rose-600 text-white font-bold"
-                          : "bg-secondary/70 border-border text-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {acc}
-                    </button>
-                  ))}
-                </div>
-
-                {isRight && sc.explanation && (
-                  <p className="mt-2 text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-xl">
-                    💡 {sc.explanation}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-
-          {isMatcherDone && (
-            <button
-              type="button"
-              onClick={() => {
-                playSuccess(settings.soundEnabled);
-                triggerConfetti();
-                onComplete(150, 45);
-              }}
-              className="press mt-2 w-full rounded-2xl bg-primary py-3.5 font-display text-sm font-bold text-primary-foreground shadow-pop active:translate-y-1"
-            >
-              Complete Account Matcher (+150 XP)
-            </button>
-          )}
         </div>
       )}
 
@@ -550,6 +471,8 @@ export const SpecialActivitiesPlayer: React.FC<Props> = ({
             Complete Practical Activity (+120 XP)
           </button>
         </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -1,9 +1,11 @@
 import React, { useState, useRef } from "react";
 import { WordSearchPuzzle } from "@/games/types";
-import { Lightbulb } from "lucide-react";
 import { playPop, playSuccess, playError } from "@/lib/audio";
 import { triggerConfetti } from "@/lib/confetti";
 import { useUserStore } from "@/lib/userStore";
+import { toast } from "sonner";
+import { HINT_COST, findWordInGrid } from "@/lib/hints";
+import { HintButton } from "@/components/games/HintButton";
 
 interface Props {
   puzzle: WordSearchPuzzle;
@@ -17,7 +19,7 @@ interface CellCoord {
 }
 
 export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }) => {
-  const { settings } = useUserStore();
+  const { settings, spendCoins, user } = useUserStore();
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [selectedCoords, setSelectedCoords] = useState<CellCoord[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
@@ -131,33 +133,48 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
     setActiveWordLetters("");
   };
 
-  // Hint logic: find first letter of uncompleted word
+  // Hint: locate the actual hidden word, then reveal the next unfilled letter.
   const handleGiveHint = () => {
     const unFound = puzzle.words.filter((w) => !foundWords.includes(w));
     if (unFound.length === 0) return;
-    const firstUnfound = unFound[0];
-    if (!firstUnfound) return;
-    const wordToHint = firstUnfound.replace(/\s+/g, "").toUpperCase();
-    const firstLetter = wordToHint[0];
 
-    for (let r = 0; r < puzzle.grid.length; r++) {
-      const row = puzzle.grid[r];
-      if (!row) continue;
-      for (let c = 0; c < row.length; c++) {
-        if (row[c] === firstLetter) {
-          const key = getCellKey(r, c);
-          if (!highlightedCells[key]) {
-            setHighlightedCells((prev) => ({
-              ...prev,
-              [key]: "bg-amber-300 animate-pulse border-amber-600 text-amber-950 font-black",
-            }));
-            setHintsUsed((h) => h + 1);
-            playPop(settings.soundEnabled);
-            return;
-          }
-        }
-      }
+    const target = unFound[0];
+    if (!target) return;
+    const located = findWordInGrid(puzzle.grid, target);
+    if (!located) {
+      toast.error("Could not place that word on this grid.");
+      return;
     }
+
+    const nextCell = located.coords.find((p) => !highlightedCells[getCellKey(p.r, p.c)]);
+    if (!nextCell) {
+      toast.message(`“${target}” runs ${located.direction} from its highlighted start.`);
+      return;
+    }
+
+    if (user.coins < HINT_COST) {
+      playError(settings.soundEnabled);
+      toast.error(`Need ${HINT_COST} coins for a hint. You have ${user.coins}.`);
+      return;
+    }
+    if (!spendCoins(HINT_COST)) {
+      toast.error("Not enough coins for a hint.");
+      return;
+    }
+
+    const key = getCellKey(nextCell.r, nextCell.c);
+    const letterIndex = located.coords.findIndex((p) => p.r === nextCell.r && p.c === nextCell.c);
+    setHighlightedCells((prev) => ({
+      ...prev,
+      [key]: "bg-amber-300 animate-pulse border-amber-600 text-amber-950 font-black",
+    }));
+    setHintsUsed((h) => h + 1);
+    playPop(settings.soundEnabled);
+    toast.success(
+      letterIndex === 0
+        ? `Hint: “${target}” starts here and runs ${located.direction}.`
+        : `Hint: next letter of “${target}” (${located.direction}).`
+    );
   };
 
   const isSelected = (r: number, c: number) => {
@@ -181,15 +198,7 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleGiveHint}
-            className="flex items-center gap-1 text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 px-2.5 py-1.5 rounded-xl active:scale-95 transition-all"
-            title="Reveal a letter hint"
-          >
-            <Lightbulb className="size-3.5" />
-            <span>Hint ({hintsUsed})</span>
-          </button>
+          <HintButton onClick={handleGiveHint} used={hintsUsed} disabled={foundWords.length === puzzle.words.length} />
         </div>
       </div>
 

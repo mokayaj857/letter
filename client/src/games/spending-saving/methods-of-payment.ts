@@ -113,7 +113,7 @@ export const paymentMethodsWordSearch3: WordSearchPuzzle = {
     ["A", "S", "M", "L", "N", "D", "A", "O", "M", "G", "T", "Y", "U", "S"],
     ["S", "O", "S", "R", "R", "E", "I", "E", "E", "H", "S", "H", "A", "O"],
     ["T", "P", "C", "A", "S", "H", "L", "E", "S", "S", "O", "S", "A", "R"],
-    ["T", "A", "T", "S", "T", "F", "R", "A", "D", "R", "E", "V", "O", "R"],
+    ["T", "A", "T", "S", "T", "F", "A", "R", "D", "R", "E", "V", "O", "R"],
   ],
 };
 

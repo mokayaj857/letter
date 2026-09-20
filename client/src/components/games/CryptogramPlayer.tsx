@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { CryptogramPuzzle } from "@/games/types";
-import { Check, Lightbulb, Sparkles, Key } from "lucide-react";
+import { Key } from "lucide-react";
 import { playPop, playSuccess, playError } from "@/lib/audio";
 import { triggerConfetti } from "@/lib/confetti";
 import { useUserStore } from "@/lib/userStore";
+import { toast } from "sonner";
+import { HINT_COST } from "@/lib/hints";
+import { HintButton } from "@/components/games/HintButton";
 
 interface Props {
   puzzle: CryptogramPuzzle;
@@ -12,13 +15,15 @@ interface Props {
 }
 
 export const CryptogramPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose }) => {
-  const { settings } = useUserStore();
+  const { settings, spendCoins, user } = useUserStore();
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [userInputs, setUserInputs] = useState<{ [itemIdx: number]: string[] }>({
     0: Array(puzzle.items[0]?.cipherSequence?.length || 0).fill(""),
   });
   const [solvedItems, setSolvedItems] = useState<number[]>([]);
   const [showAlphabetKey, setShowAlphabetKey] = useState(true);
+  const [revealedHints, setRevealedHints] = useState<number[]>([]);
+  const [hintsUsed, setHintsUsed] = useState(0);
 
   const currentItem = puzzle.items[activeItemIndex];
 
@@ -62,22 +67,61 @@ export const CryptogramPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
   };
 
   const handleHint = () => {
-    if (!currentItem) return;
+    if (!currentItem || solvedItems.includes(activeItemIndex)) return;
     const target = currentItem.solution.toUpperCase().replace(/\s+/g, "");
     const currentList = [
       ...(userInputs[activeItemIndex] ||
         Array(currentItem.cipherSequence.length).fill("")),
     ];
 
-    for (let i = 0; i < target.length; i++) {
-      if (currentList[i] !== target[i]) {
-        currentList[i] = target[i];
-        setUserInputs({
-          ...userInputs,
-          [activeItemIndex]: currentList,
-        });
-        playPop(settings.soundEnabled);
-        return;
+    const blankIndex = currentList.findIndex((ch, i) => ch !== target[i]);
+    const hintAlreadyShown = revealedHints.includes(activeItemIndex);
+
+    if (blankIndex === -1 && hintAlreadyShown) {
+      toast.message("This word is already fully hinted.");
+      return;
+    }
+
+    if (user.coins < HINT_COST) {
+      playError(settings.soundEnabled);
+      toast.error(`Need ${HINT_COST} coins for a hint. You have ${user.coins}.`);
+      return;
+    }
+    if (!spendCoins(HINT_COST)) {
+      toast.error("Not enough coins for a hint.");
+      return;
+    }
+
+    if (!hintAlreadyShown) {
+      setRevealedHints((prev) => [...prev, activeItemIndex]);
+    }
+
+    if (blankIndex !== -1) {
+      currentList[blankIndex] = target[blankIndex] || "";
+      setUserInputs({
+        ...userInputs,
+        [activeItemIndex]: currentList,
+      });
+    }
+
+    setHintsUsed((h) => h + 1);
+    playPop(settings.soundEnabled);
+    toast.success(
+      hintAlreadyShown
+        ? `Filled letter ${blankIndex + 1}: “${target[blankIndex]}”.`
+        : "Hint unlocked. One letter filled."
+    );
+
+    const enteredWord = currentList.join("");
+    if (enteredWord === target && !solvedItems.includes(activeItemIndex)) {
+      playSuccess(settings.soundEnabled);
+      const newSolved = [...solvedItems, activeItemIndex];
+      setSolvedItems(newSolved);
+      if (newSolved.length === puzzle.items.length) {
+        triggerConfetti();
+        setTimeout(() => {
+          onComplete(150, 40);
+        }, 600);
       }
     }
   };
@@ -103,14 +147,11 @@ export const CryptogramPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
           </h2>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
+          <HintButton
             onClick={handleHint}
-            className="flex items-center gap-1 text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 px-2.5 py-1.5 rounded-xl active:scale-95"
-          >
-            <Lightbulb className="size-3.5" />
-            <span>Hint</span>
-          </button>
+            used={hintsUsed}
+            disabled={solvedItems.includes(activeItemIndex)}
+          />
         </div>
       </div>
 
@@ -128,8 +169,8 @@ export const CryptogramPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
       <div className="my-2 p-3.5 bg-secondary/40 border border-border/60 rounded-3xl">
         <p className="text-xs font-bold text-muted-foreground mb-1">Clue / Meaning:</p>
         <p className="font-display text-sm font-bold text-foreground">{currentItem.prompt}</p>
-        {currentItem.hint && (
-          <p className="text-[11px] text-primary-deep font-semibold mt-1">
+        {revealedHints.includes(activeItemIndex) && currentItem.hint && (
+          <p className="text-[11px] text-primary-deep font-semibold mt-1.5 leading-relaxed">
             💡 {currentItem.hint}
           </p>
         )}

@@ -5,6 +5,7 @@ const {
   updateProfile,
   updateSettings,
   updateGoal,
+  spendCoins,
   buyItem,
   equipItem,
   completeLevel,
@@ -22,6 +23,7 @@ router.use(authenticateToken);
 router.put('/profile', updateProfile);
 router.put('/settings', updateSettings);
 router.put('/goal', updateGoal);
+router.post('/coins/spend', spendCoins);
 
 // Shop
 router.post('/items', buyItem);

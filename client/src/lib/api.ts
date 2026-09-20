@@ -4,6 +4,31 @@ import { auth as firebaseAuth } from "./firebase";
 export const API_BASE: string =
   (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
 
+/** Once the API is unreachable, skip further calls so finishing a level still works offline. */
+let backendReachable: boolean | null = null;
+let backendProbe: Promise<boolean> | null = null;
+
+function probeBackend(): Promise<boolean> {
+  if (backendReachable === true) return Promise.resolve(true);
+  if (backendReachable === false) return Promise.resolve(false);
+  if (backendProbe) return backendProbe;
+
+  backendProbe = (async () => {
+    try {
+      const ctrl = new AbortController();
+      const timer = window.setTimeout(() => ctrl.abort(), 1200);
+      const res = await fetch(`${API_BASE}/api/health`, { signal: ctrl.signal });
+      window.clearTimeout(timer);
+      backendReachable = res.ok;
+    } catch {
+      backendReachable = false;
+    }
+    return backendReachable === true;
+  })();
+
+  return backendProbe;
+}
+
 // Mapping from client camelCase to server snake_case columns is handled server-side.
 // The server returns data already shaped as LetterboxState. Here we just pass raw.
 
@@ -25,6 +50,11 @@ async function request<T>(
   path: string,
   options: { method?: string; body?: unknown } = {}
 ): Promise<T> {
+  const online = await probeBackend();
+  if (!online) {
+    throw new Error("Backend unavailable");
+  }
+
   const token = await getToken();
   const uid = firebaseAuth?.currentUser?.uid;
 
@@ -85,6 +115,12 @@ const api = {
     request<{ success: boolean; data: any }>("/api/user/goal", {
       method: "PUT",
       body: updates,
+    }),
+
+  spendCoins: (amount: number) =>
+    request<{ success: boolean; data: any }>("/api/user/coins/spend", {
+      method: "POST",
+      body: { amount },
     }),
 
   // Shop
