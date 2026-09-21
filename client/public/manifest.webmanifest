@@ -1,0 +1,26 @@
+{
+  "name": "Letterbox — Money Games for Smart Kids",
+  "short_name": "Letterbox",
+  "description": "Play money quests, quizzes and puzzles. Cached on your device so you can keep playing for a while without internet.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4e8",
+  "theme_color": "#2f6a45",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

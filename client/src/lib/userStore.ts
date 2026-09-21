@@ -10,9 +10,10 @@ import {
   stopBackgroundMusic,
 } from "./audio";
 import { triggerConfetti } from "./confetti";
-import api from "./api";
+import api, { resetBackendProbe } from "./api";
 import { isFirebaseConfigured, subscribeToFirebaseAuthState } from "./firebase";
 import { signOutEverywhere } from "./authService";
+import { isOfflineSessionFresh } from "./pwa";
 
 export interface UserProfile {
   name: string;
@@ -232,11 +233,20 @@ function persistLocalProgress() {
     window.localStorage.setItem(
       LOCAL_PROGRESS_KEY,
       JSON.stringify({
+        savedAt: Date.now(),
         user: globalState.user,
+        settings: globalState.settings,
         gameProgress: globalState.gameProgress,
         goal: globalState.goal,
         ownedItems: globalState.ownedItems,
         badges: globalState.badges,
+        dailyChallenge: globalState.dailyChallenge,
+        auth: {
+          isLoggedIn: globalState.auth.isLoggedIn,
+          email: globalState.auth.email,
+          provider: globalState.auth.provider,
+        },
+        registeredAccounts: globalState.registeredAccounts,
       })
     );
   } catch {
@@ -249,14 +259,21 @@ function restoreLocalProgress() {
   try {
     const raw = window.localStorage.getItem(LOCAL_PROGRESS_KEY);
     if (!raw) return;
-    const parsed = JSON.parse(raw) as Partial<LetterboxState>;
+    const parsed = JSON.parse(raw) as Partial<LetterboxState> & { savedAt?: number };
+    const sessionOk = isOfflineSessionFresh(parsed.savedAt) || parsed.auth?.isLoggedIn;
     globalState = {
       ...globalState,
       user: { ...globalState.user, ...(parsed.user || {}) },
+      settings: { ...globalState.settings, ...(parsed.settings || {}) },
       gameProgress: { ...globalState.gameProgress, ...(parsed.gameProgress || {}) },
       goal: { ...globalState.goal, ...(parsed.goal || {}) },
       ownedItems: parsed.ownedItems || globalState.ownedItems,
       badges: parsed.badges || globalState.badges,
+      dailyChallenge: parsed.dailyChallenge || globalState.dailyChallenge,
+      auth: sessionOk
+        ? { ...globalState.auth, ...(parsed.auth || {}) }
+        : globalState.auth,
+      registeredAccounts: parsed.registeredAccounts || globalState.registeredAccounts,
     };
   } catch {
     // Ignore corrupt local cache.
@@ -277,14 +294,24 @@ if (typeof window !== "undefined" && isFirebaseConfigured()) {
     subscribeToFirebaseAuthState((fbUser) => {
       if (fbUser) {
         syncWithBackend(api.dashboard());
-      } else if (globalState.auth.isLoggedIn) {
-        globalState = cloneState({ ...DEFAULT_STATE, registeredAccounts: globalState.registeredAccounts });
-        emitChange();
+        return;
       }
+      // Keep the local session while offline so kids can keep playing.
+      // Online sign-out is handled by logout(); do not wipe cached progress here.
+      if (!navigator.onLine) return;
     });
   } catch (e) {
     console.warn("Failed to subscribe to Firebase auth state:", e);
   }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("online", () => {
+    resetBackendProbe();
+    if (globalState.auth.isLoggedIn) {
+      syncWithBackend(api.dashboard());
+    }
+  });
 }
 
 export function useUserStore() {

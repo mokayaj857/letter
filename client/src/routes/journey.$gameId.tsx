@@ -330,8 +330,18 @@ function Journey() {
 
       {/* Playable Level Runner Modal */}
       {playingLevelIndex !== null && activeLevel && !victoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-3 sm:p-5 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm sm:max-w-lg max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-4 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto flex flex-col">
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/60 backdrop-blur-md animate-in fade-in duration-200 ${
+            activeLevel.gameData?.type === "crossword" ? "p-0 sm:p-5" : "overflow-y-auto p-3 sm:p-5"
+          }`}
+        >
+          <div
+            className={`relative w-full overflow-y-auto rounded-4xl border-2 border-border bg-card p-4 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto flex flex-col min-h-0 ${
+              activeLevel.gameData?.type === "crossword"
+                ? "max-w-lg h-[min(100dvh,100svh)] max-h-[min(100dvh,100svh)] sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] p-3 sm:p-6"
+                : "max-w-sm sm:max-w-lg max-h-[calc(100dvh-1.5rem)]"
+            }`}
+          >
             <button
               type="button"
               onClick={() => setPlayingLevelIndex(null)}

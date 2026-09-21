@@ -29,6 +29,12 @@ function probeBackend(): Promise<boolean> {
   return backendProbe;
 }
 
+/** Call when the device comes back online so health checks run again. */
+export function resetBackendProbe() {
+  backendReachable = null;
+  backendProbe = null;
+}
+
 // Mapping from client camelCase to server snake_case columns is handled server-side.
 // The server returns data already shaped as LetterboxState. Here we just pass raw.
 
