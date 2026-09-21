@@ -3,7 +3,7 @@ import { CrosswordPuzzle, QuizPuzzle, ActivityPuzzle } from "../types";
 export const videoGamesCrossword1: CrosswordPuzzle = {
   type: "crossword",
   id: "sw-videogames-cw1",
-  title: "Video Games: Crossword 1",
+  title: "Video Games: Puzzle 1",
   topic: "Spending Wisely",
   instruction: "Fill the gaming money words from the puzzle-book word bank.",
   rows: 10,
@@ -23,7 +23,7 @@ export const videoGamesCrossword1: CrosswordPuzzle = {
 export const videoGamesCrossword2: CrosswordPuzzle = {
   type: "crossword",
   id: "sw-videogames-cw2",
-  title: "Video Games: Crossword 2",
+  title: "Video Games: Puzzle 2",
   topic: "Spending Wisely",
   instruction: "Solve Kenyan games and money-goal clues from the book.",
   rows: 10,
@@ -44,7 +44,7 @@ export const videoGamesCrossword2: CrosswordPuzzle = {
 export const videoGamesCrossword3: CrosswordPuzzle = {
   type: "crossword",
   id: "sw-videogames-cw3",
-  title: "Video Games: Crossword 3",
+  title: "Video Games: Puzzle 3",
   topic: "Spending Wisely",
   instruction: "Fill safety, privacy, and in-game trading terms.",
   rows: 12,

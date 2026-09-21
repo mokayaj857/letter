@@ -1,24 +1,21 @@
 import { gameArt } from "@/assets/icons";
 import type { AnyGame } from "@/games/types";
 import {
-  foundationsWordSearch1,
-  foundationsWordSearch2,
   foundationsQuiz,
+  foundationsCrossword1,
+  foundationsCrossword2,
   foundationsCrossword3,
   foundationsCrossword4,
 } from "@/games/money-basics/foundations-of-money";
 import {
-  kenyanCurrencyWordSearch1,
-  kenyanCurrencyWordSearch2,
-  kenyanCurrencyWordSearch3,
-  kenyanCurrencyWordSearch4,
   kenyanCurrencyQuiz1,
   kenyanCurrencyCrossword1,
   kenyanCurrencyCrossword2,
+  kenyanCurrencyCrossword3,
+  kenyanCurrencyCrossword4,
   tactileSecurityActivity,
 } from "@/games/money-basics/features-of-kenyan-currency";
 import {
-  mpesaWordSearch,
   mpesaQuiz,
   mpesaGoQuiz,
   mpesaCrossword1,
@@ -40,11 +37,11 @@ import {
   currenciesKenyaCryptogram,
 } from "@/games/money-basics/currencies-of-kenya";
 import {
-  historyOfTradeWordSearch1,
   historyOfTradeWordSearch2,
   historyOfTradeWordSearch3,
   historyOfTradeWordSearch4,
   historyOfTradeQuiz,
+  historyOfTradeCrossword1,
   historyOfTradeCrossword5,
 } from "@/games/global-money/history-of-trade";
 import {
@@ -81,7 +78,7 @@ import {
   africanCitiesWordSearch,
 } from "@/games/global-money/cryptograms";
 import {
-  budgetingWordSearch1,
+  budgetingCrossword1,
   budgetingWordSearch2,
   budgetingWordSearch3,
   budgetingQuiz,
@@ -142,9 +139,9 @@ import {
   smartMoneyPledgeActivity,
 } from "@/games/spending-saving/activities";
 import {
-  earningWordSearch1,
-  earningWordSearch2,
   earningQuiz,
+  earningCrossword1,
+  earningCrossword2,
   earningCrossword3,
   earningCrossword4,
   earningQuiz2,
@@ -243,28 +240,25 @@ export const games: Game[] = [
     levels: withProgress(
       [
         ...orderedTopic([
-          lv("Foundations of Money: Word Search", "wordsearch", 60, foundationsWordSearch1),
-          lv("Foundations of Money: Word Search 2", "wordsearch", 60, foundationsWordSearch2),
+          lv("Foundations of Money: Puzzle 1", "crossword", 75, foundationsCrossword1),
+          lv("Foundations of Money: Puzzle 2", "crossword", 75, foundationsCrossword2),
+          lv("Foundations of Money: Puzzle 3", "crossword", 75, foundationsCrossword3),
+          lv("Foundations of Money: Puzzle 4", "crossword", 75, foundationsCrossword4),
           lv("Foundations of Money: Quiz", "quiz", 80, foundationsQuiz),
-          lv("Foundations of Money: Crossword 3", "crossword", 75, foundationsCrossword3),
-          lv("Foundations of Money: Crossword 4", "crossword", 75, foundationsCrossword4),
         ]),
         ...orderedTopic([
-          lv("Features of Kenyan Currency: Word Search", "wordsearch", 60, kenyanCurrencyWordSearch1),
-          lv("Features of Kenyan Currency: Word Search 2", "wordsearch", 60, kenyanCurrencyWordSearch2),
-          lv("Features of Kenyan Currency: Word Search 3", "wordsearch", 60, kenyanCurrencyWordSearch3),
-          lv("Features of Kenyan Currency: Word Search 4", "wordsearch", 60, kenyanCurrencyWordSearch4),
+          lv("Features of Kenyan Currency: Puzzle 1", "crossword", 75, kenyanCurrencyCrossword1),
+          lv("Features of Kenyan Currency: Puzzle 2", "crossword", 75, kenyanCurrencyCrossword2),
+          lv("Features of Kenyan Currency: Puzzle 3", "crossword", 75, kenyanCurrencyCrossword3),
+          lv("Features of Kenyan Currency: Puzzle 4", "crossword", 75, kenyanCurrencyCrossword4),
           lv("Features of Kenyan Currency: Quiz", "quiz", 80, kenyanCurrencyQuiz1),
-          lv("Currency Security: Crossword", "crossword", 75, kenyanCurrencyCrossword1),
-          lv("Currency Security: Crossword 2", "crossword", 75, kenyanCurrencyCrossword2),
           lv("Banknote Tactile Bars Inspection", "activity", 100, tactileSecurityActivity),
         ]),
         ...orderedTopic([
-          lv("Characteristics of M-Pesa: Word Search", "wordsearch", 60, mpesaWordSearch),
+          lv("Characteristics of M-Pesa: Puzzle 1", "crossword", 70, mpesaCrossword1),
+          lv("Characteristics of M-Pesa: Puzzle 2", "crossword", 70, mpesaCrossword2),
           lv("Characteristics of M-Pesa: Quiz", "quiz", 80, mpesaQuiz),
           lv("M-Pesa GO & Youth Security Quiz", "quiz", 80, mpesaGoQuiz),
-          lv("M-Pesa GO & Privacy: Crossword", "crossword", 70, mpesaCrossword1),
-          lv("Characteristics of M-Pesa: Crossword 2", "crossword", 70, mpesaCrossword2),
         ]),
         ...orderedTopic([
           lv("Kenyan Exports: Word Search", "wordsearch", 60, kenyanExportsWordSearch),
@@ -294,12 +288,12 @@ export const games: Game[] = [
     done: 0,
     levels: withProgress([
         ...orderedTopic([
-          lv("History of Trade in Africa: Word Search", "wordsearch", 60, historyOfTradeWordSearch1),
+          lv("History of Trade in Africa: Puzzle 1", "crossword", 75, historyOfTradeCrossword1),
           lv("History of Trade in Africa: Word Search 2", "wordsearch", 60, historyOfTradeWordSearch2),
           lv("History of Trade in Africa: Word Search 3", "wordsearch", 60, historyOfTradeWordSearch3),
           lv("History of Trade in Africa: Word Search 4", "wordsearch", 60, historyOfTradeWordSearch4),
           lv("Trans-Saharan & Maritime Trade: Quiz", "quiz", 80, historyOfTradeQuiz),
-          lv("History of Trade in Africa: Crossword 5", "crossword", 75, historyOfTradeCrossword5),
+          lv("History of Trade in Africa: Puzzle 5", "crossword", 75, historyOfTradeCrossword5),
         ]),
         ...orderedTopic([
           lv("Currencies of Africa: Word Search", "wordsearch", 60, currenciesAfricaWordSearch1),
@@ -349,12 +343,12 @@ export const games: Game[] = [
     done: 0,
     levels: withProgress([
       ...orderedTopic([
-        lv("Sources of Income: Word Search", "wordsearch", 60, earningWordSearch1),
-        lv("Sources of Income: Word Search 2", "wordsearch", 60, earningWordSearch2),
+        lv("Types of Income: Puzzle 1", "crossword", 75, earningCrossword1),
+        lv("Types of Income: Puzzle 2", "crossword", 75, earningCrossword2),
+        lv("Types of Income: Puzzle 3", "crossword", 75, earningCrossword3),
+        lv("Types of Income: Puzzle 4", "crossword", 75, earningCrossword4),
         lv("Earned vs Passive Income: Quiz", "quiz", 80, earningQuiz),
         lv("Types of Income: Quiz 2", "quiz", 80, earningQuiz2),
-        lv("Types of Income: Crossword 3", "crossword", 75, earningCrossword3),
-        lv("Types of Income: Crossword 4", "crossword", 75, earningCrossword4),
       ]),
       ...orderedTopic([
         lv("Careers & Employment: Word Search 1", "wordsearch", 60, careersWordSearch1),
@@ -398,7 +392,7 @@ export const games: Game[] = [
     done: 0,
     levels: withProgress([
       ...orderedTopic([
-        lv("Needs vs Wants: Word Search", "wordsearch", 60, budgetingWordSearch1),
+        lv("Budgeting: Puzzle 1", "crossword", 75, budgetingCrossword1),
         lv("Expense Forecasts & Cutbacks: Word Search", "wordsearch", 60, budgetingWordSearch2),
         lv("Fixed vs Variable Costs: Word Search", "wordsearch", 60, budgetingWordSearch3),
         lv("Budget Allocation & Priorities: Quiz", "quiz", 80, budgetingQuiz),
@@ -410,10 +404,10 @@ export const games: Game[] = [
         lv("Savvy Shopper: Quiz", "quiz", 80, savvyShopperQuiz),
       ]),
       ...orderedTopic([
+        lv("Video Games: Puzzle 1", "crossword", 75, videoGamesCrossword1),
+        lv("Video Games: Puzzle 2", "crossword", 75, videoGamesCrossword2),
+        lv("Video Games: Puzzle 3", "crossword", 75, videoGamesCrossword3),
         lv("Video Games: Quiz", "quiz", 80, videoGamesQuiz),
-        lv("Video Games: Crossword 1", "crossword", 75, videoGamesCrossword1),
-        lv("Video Games: Crossword 2", "crossword", 75, videoGamesCrossword2),
-        lv("Video Games: Crossword 3", "crossword", 75, videoGamesCrossword3),
         lv("Plan a Squad Outing", "activity", 100, squadOutingActivity),
       ]),
       ...orderedTopic([

@@ -1,4 +1,24 @@
-import { WordSearchPuzzle, QuizPuzzle, ActivityPuzzle } from "../types";
+import { WordSearchPuzzle, QuizPuzzle, ActivityPuzzle, CrosswordPuzzle } from "../types";
+
+export const budgetingCrossword1: CrosswordPuzzle = {
+  type: "crossword",
+  id: "sw-budgeting-cw1",
+  title: "Budgeting: Puzzle 1",
+  topic: "Spending Wisely",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 11,
+  cols: 10,
+  wordBank: ["Monetary", "Food", "Goal setting", "Fare", "Value", "Prioritize", "Rent", "Trade"],
+  acrossClues: [
+    { number: 2, clue: "The money you pay to the makanga to travel in a matatu.", answer: "FARE", row: 1, col: 2, direction: "across" },
+    { number: 3, clue: "The payment made to a landlord in exchange for a place to live.", answer: "RENT", row: 3, col: 0, direction: "across" },
+    { number: 5, clue: "Putting your most important expenses, like fare to school, at the top of your list.", answer: "PRIORITIZE", row: 5, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "Defining exactly what you want to buy in the future, like a new laptop or bike.", answer: "GOALSETTING", row: 0, col: 9, direction: "down" },
+    { number: 4, clue: "An essential daily expense for meals, snacks, or that midday cup of tea.", answer: "FOOD", row: 4, col: 3, direction: "down" },
+  ],
+};
 
 export const budgetingWordSearch1: WordSearchPuzzle = {
   type: "wordsearch",

@@ -162,23 +162,63 @@ export const foundationsQuiz: QuizPuzzle = {
   ],
 };
 
+export const foundationsCrossword1: CrosswordPuzzle = {
+  type: "crossword",
+  id: "mb-foundations-cw1",
+  title: "Foundations of Money: Puzzle 1",
+  topic: "Money Basics",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 8,
+  cols: 13,
+  wordBank: ["Profit", "Wages", "Budget", "Invoice", "Bribe", "Pocket Money", "Savings", "Track"],
+  acrossClues: [
+    { number: 3, clue: "The small amount of cash parents/guardians sometimes give their kids for snacks or personal use.", answer: "POCKETMONEY", row: 4, col: 2, direction: "across" },
+    { number: 4, clue: "A financial plan where you decide how much to spend and save weekly or monthly.", answer: "BUDGET", row: 6, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "The money you put aside in a piggy bank, glass jar or M-Shwari account, for future use.", answer: "SAVINGS", row: 0, col: 10, direction: "down" },
+    { number: 2, clue: "Money paid daily or weekly for someone’s casual labour or work.", answer: "WAGES", row: 1, col: 6, direction: "down" },
+    { number: 3, clue: "What you make when you sell something for more than the price you paid for it.", answer: "PROFIT", row: 2, col: 9, direction: "down" },
+  ],
+};
+
+export const foundationsCrossword2: CrosswordPuzzle = {
+  type: "crossword",
+  id: "mb-foundations-cw2",
+  title: "Foundations of Money: Puzzle 2",
+  topic: "Money Basics",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 11,
+  cols: 8,
+  wordBank: ["Payoff", "Backpay", "Expense", "Loss", "Ledger", "Wealth", "Allowance"],
+  acrossClues: [
+    { number: 3, clue: "The total value of everything you own, including cash and property.", answer: "WEALTH", row: 3, col: 2, direction: "across" },
+    { number: 4, clue: "The result of spending more money on a business than you actually make.", answer: "LOSS", row: 5, col: 0, direction: "across" },
+    { number: 5, clue: "Money owed to you for work done in the past that wasn't paid on time.", answer: "BACKPAY", row: 7, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "Anything you spend money on, like airtime, bus fare, or snacks.", answer: "EXPENSE", row: 0, col: 3, direction: "down" },
+    { number: 2, clue: "A set amount of money given to you regularly, like a monthly stipend by a parent/guardian.", answer: "ALLOWANCE", row: 2, col: 5, direction: "down" },
+  ],
+};
+
 export const foundationsCrossword3: CrosswordPuzzle = {
   type: "crossword",
   id: "mb-foundations-cw3",
   title: "Foundations of Money: Puzzle 3",
   topic: "Money Basics",
-  instruction: "Fill the record-keeping and cash words from the book.",
-  rows: 10,
-  cols: 12,
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 7,
+  cols: 10,
   wordBank: ["Accounts", "Track", "Balance", "Coins", "Books", "Priority", "Record", "Security"],
   acrossClues: [
-    { number: 1, clue: "Metallic currency, like the 1, 5, 10, or 20 shilling pieces.", answer: "COINS", row: 1, col: 0, direction: "across" },
-    { number: 4, clue: "What you do so you do not misuse cash: write down every shilling.", answer: "TRACK", row: 4, col: 0, direction: "across" },
-    { number: 5, clue: "The total left in your account after a transaction.", answer: "BALANCE", row: 7, col: 0, direction: "across" },
+    { number: 1, clue: "The feeling of safety you have when your money is protected and steady.", answer: "SECURITY", row: 2, col: 2, direction: "across" },
+    { number: 3, clue: "The amount of money remaining in your account or wallet right now.", answer: "BALANCE", row: 4, col: 0, direction: "across" },
+    { number: 5, clue: "Choosing to buy what you need like school supplies before what you want, like a packet of crisps.", answer: "PRIORITY", row: 6, col: 0, direction: "across" },
   ],
   downClues: [
-    { number: 2, clue: "A written note of a purchase or payment so you can prove it later.", answer: "RECORD", row: 0, col: 8, direction: "down" },
-    { number: 3, clue: "Putting the most important expenses first.", answer: "PRIORITY", row: 0, col: 2, direction: "down" },
+    { number: 2, clue: "To follow and record every shilling you spend so you don't go broke.", answer: "TRACK", row: 2, col: 8, direction: "down" },
+    { number: 4, clue: "Metallic currency, like the 1, 5, 10, or 20 shilling pieces.", answer: "COINS", row: 0, col: 7, direction: "down" },
   ],
 };
 
@@ -187,17 +227,17 @@ export const foundationsCrossword4: CrosswordPuzzle = {
   id: "mb-foundations-cw4",
   title: "Foundations of Money: Puzzle 4",
   topic: "Money Basics",
-  instruction: "Fill income, salary, notes, and price clues.",
-  rows: 10,
-  cols: 12,
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 8,
+  cols: 8,
   wordBank: ["Receipt", "Income", "Notes", "Salary", "Cash", "Price", "Pay", "Plan"],
   acrossClues: [
-    { number: 1, clue: "The money you earn from working a job or from your business activities.", answer: "INCOME", row: 1, col: 0, direction: "across" },
-    { number: 4, clue: "Fixed monthly pay, usually for an individual’s professional work.", answer: "SALARY", row: 4, col: 0, direction: "across" },
+    { number: 1, clue: "The money you earn from working a job or from your business activities.", answer: "INCOME", row: 3, col: 2, direction: "across" },
+    { number: 4, clue: "Fixed monthly pay, usually for an individual’s professional work.", answer: "SALARY", row: 5, col: 0, direction: "across" },
     { number: 5, clue: "Physical money in the form of notes and coins.", answer: "CASH", row: 7, col: 0, direction: "across" },
   ],
   downClues: [
-    { number: 2, clue: "Paper money; in Kenya, these range from 50 to 1,000 shillings.", answer: "NOTES", row: 0, col: 8, direction: "down" },
-    { number: 3, clue: "The amount you verify before buying a smokie, a soda, or boarding a matatu.", answer: "PRICE", row: 0, col: 3, direction: "down" },
+    { number: 2, clue: "Paper money; in Kenya, these range from 50 to 1,000 shillings.", answer: "NOTES", row: 0, col: 7, direction: "down" },
+    { number: 3, clue: "The amount you verify before buying something like a smokie pasua, a soda or boarding a matatu.", answer: "PRICE", row: 0, col: 4, direction: "down" },
   ],
 };

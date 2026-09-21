@@ -247,7 +247,7 @@ export const kenyanCurrencyQuiz1: QuizPuzzle = {
 export const kenyanCurrencyCrossword1: CrosswordPuzzle = {
   type: "crossword",
   id: "mb-currency-cw1",
-  title: "Features of Kenyan Currency: Crossword 1",
+  title: "Features of Kenyan Currency: Puzzle 1",
   topic: "Money Basics",
   instruction: "Fill in the white squares with the correct financial terms from Kenyan currency.",
   rows: 10,
@@ -344,7 +344,7 @@ export const kenyanCurrencyCrossword1: CrosswordPuzzle = {
 export const kenyanCurrencyCrossword2: CrosswordPuzzle = {
   type: "crossword",
   id: "mb-currency-cw2",
-  title: "Features of Kenyan Currency: Crossword 2",
+  title: "Features of Kenyan Currency: Puzzle 2",
   topic: "Money Basics",
   instruction: "Solve the crossword on security threads, coins, and official symbols.",
   rows: 10,
@@ -435,6 +435,51 @@ export const kenyanCurrencyCrossword2: CrosswordPuzzle = {
       col: 3,
       direction: "down",
     },
+  ],
+};
+
+export const kenyanCurrencyCrossword3: CrosswordPuzzle = {
+  type: "crossword",
+  id: "mb-currency-cw3",
+  title: "Features of Kenyan Currency: Puzzle 3",
+  topic: "Money Basics",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 15,
+  cols: 13,
+  wordBank: ["Ten", "Signature", "Cotton Paper", "Shilling", "Twenty", "KES", "Visa", "Cash", "Notes", "Mpesa"],
+  acrossClues: [
+    { number: 5, clue: "The physical material the Kenyan paper money is printed on.", answer: "COTTONPAPER", row: 3, col: 2, direction: "across" },
+    { number: 7, clue: "The legal mark of the Central Bank Governor found on all Kenya shilling notes.", answer: "SIGNATURE", row: 5, col: 0, direction: "across" },
+    { number: 8, clue: "A common brand mark found on bank debit cards used to tap and pay at the supermarket.", answer: "VISA", row: 7, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "The official name of Kenya's currency unit. It starts with ‘S’.", answer: "SHILLING", row: 7, col: 2, direction: "down" },
+    { number: 2, clue: "The world-famous mobile money service launched by Safaricom in 2007.", answer: "MPESA", row: 2, col: 10, direction: "down" },
+    { number: 3, clue: "Physical paper money, including the brown 1,000 bob and the red 50 bob.", answer: "NOTES", row: 0, col: 11, direction: "down" },
+    { number: 4, clue: "The three-letter international code used to represent Kenyan money.", answer: "KES", row: 4, col: 8, direction: "down" },
+    { number: 6, clue: "Physical money i.e. coins and notes as opposed to digital transfers.", answer: "CASH", row: 2, col: 9, direction: "down" },
+  ],
+};
+
+export const kenyanCurrencyCrossword4: CrosswordPuzzle = {
+  type: "crossword",
+  id: "mb-currency-cw4",
+  title: "Features of Kenyan Currency: Puzzle 4",
+  topic: "Money Basics",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 14,
+  cols: 9,
+  wordBank: ["Notes", "Purple", "Wallet", "Pesalink", "Blue Green", "Coins", "Fifty", "Bank", "Airtel"],
+  acrossClues: [
+    { number: 2, clue: "The color of the security thread on the 100 bob note when viewed at an angle.", answer: "PURPLE", row: 4, col: 2, direction: "across" },
+    { number: 4, clue: "The color shift effect specific to the security thread of the 200 banknote.", answer: "BLUEGREEN", row: 6, col: 0, direction: "across" },
+    { number: 6, clue: "Not just for leather anymore; now it’s also in digital form found in phones.", answer: "WALLET", row: 8, col: 0, direction: "across" },
+    { number: 7, clue: "Metal money used for small change, like the 1, 5, 10, or 20 denominations.", answer: "COINS", row: 10, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "The main competitor to Mpesa for mobile transactions.", answer: "AIRTEL", row: 0, col: 7, direction: "down" },
+    { number: 3, clue: "The service used to send money instantly from one bank account to another.", answer: "PESALINK", row: 5, col: 6, direction: "down" },
+    { number: 5, clue: "The unique color effect of the Ksh. 50 note's security thread when tilted at an angle.", answer: "FIFTY", row: 9, col: 2, direction: "down" },
   ],
 };
 

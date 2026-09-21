@@ -241,6 +241,29 @@ export const historyOfTradeQuiz: QuizPuzzle = {
   ],
 };
 
+export const historyOfTradeCrossword1: CrosswordPuzzle = {
+  type: "crossword",
+  id: "gm-trade-cw1",
+  title: "History of Trade in Africa: Puzzle 1",
+  topic: "Global Money & Trade",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 9,
+  cols: 12,
+  wordBank: ["Barter", "Shilling", "CBK", "Services", "Goods", "Pesa", "Rupee", "Cent", "Cowrie Shells", "Trade"],
+  acrossClues: [
+    { number: 3, clue: "Intangible actions, efforts, or performances provided by one person to another, often in exchange for payment, e.g. braiding hair.", answer: "SERVICES", row: 4, col: 2, direction: "across" },
+    { number: 7, clue: "Small, durable sea shells from the Indian Ocean used as a pre-colonial form of money.", answer: "COWRIESHELLS", row: 6, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "Physical items, like beads or cloth, that were exchanged in the early trade economies of Kenya before modern money was introduced.", answer: "GOODS", row: 0, col: 2, direction: "down" },
+    { number: 2, clue: "The smaller unit that makes up one Shilling; 100 of these equal one shilling.", answer: "CENT", row: 5, col: 5, direction: "down" },
+    { number: 4, clue: "The currency brought by Indian labourers during the construction of the Kenya - Uganda railway in the late 1800s.", answer: "RUPEE", row: 1, col: 3, direction: "down" },
+    { number: 5, clue: "The general process of exchanging items between different communities, which helped create early social and economic bonds across the region.", answer: "TRADE", row: 0, col: 8, direction: "down" },
+    { number: 6, clue: "The common Swahili word for money, believed to have originated from the Indian \"Pice\" or Portuguese \"Peso\".", answer: "PESA", row: 2, col: 9, direction: "down" },
+    { number: 7, clue: "The abbreviation for the Central Bank of Kenya, the institution that manages and issues all Kenyan currency.", answer: "CBK", row: 6, col: 0, direction: "down" },
+  ],
+};
+
 export const historyOfTradeCrossword5: CrosswordPuzzle = {
   type: "crossword",
   id: "gm-trade-cw5",

@@ -136,7 +136,7 @@ export const mpesaGoQuiz: QuizPuzzle = {
 export const mpesaCrossword1: CrosswordPuzzle = {
   type: "crossword",
   id: "mb-mpesa-cw1",
-  title: "Characteristics of M-Pesa: Crossword 1",
+  title: "Characteristics of M-Pesa: Puzzle 1",
   topic: "Money Basics",
   instruction: "Solve the crossword on M-Pesa parent consent, financial literacy, and KYC.",
   rows: 8,
@@ -191,7 +191,7 @@ export const mpesaCrossword1: CrosswordPuzzle = {
 export const mpesaCrossword2: CrosswordPuzzle = {
   type: "crossword",
   id: "mb-mpesa-cw2",
-  title: "Characteristics of M-Pesa: Crossword 2",
+  title: "Characteristics of M-Pesa: Puzzle 2",
   topic: "Money Basics",
   instruction: "Solve the crossword on reversals, agent float, limits, and STK.",
   rows: 8,

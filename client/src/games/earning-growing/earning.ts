@@ -157,23 +157,63 @@ export const earningQuiz: QuizPuzzle = {
   ],
 };
 
+export const earningCrossword1: CrosswordPuzzle = {
+  type: "crossword",
+  id: "eg-earning-cw1",
+  title: "Types of Income: Puzzle 1",
+  topic: "Earning & Growing Money",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 18,
+  cols: 8,
+  wordBank: ["Pay", "Wage", "Tip", "Commission", "Salary", "Bonus", "Allowance", "Cash"],
+  acrossClues: [
+    { number: 2, clue: "A fixed regular payment typically paid on a monthly basis by an employer.", answer: "SALARY", row: 4, col: 2, direction: "across" },
+    { number: 5, clue: "Payment based on the number of hours an employee works or days completed, common for manual jobs.", answer: "WAGE", row: 6, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 2, clue: "A set amount of money given by a parent/guardian to their child for specific needs, like school fare, airtime or lunch.", answer: "ALLOWANCE", row: 4, col: 5, direction: "down" },
+    { number: 3, clue: "That extra money an employee gets at the end of the year for hitting a big sales target.", answer: "BONUS", row: 0, col: 2, direction: "down" },
+    { number: 4, clue: "Some additional money left for a helpful waiter at a local Java, or a nail tech for excellent service.", answer: "TIP", row: 15, col: 0, direction: "down" },
+  ],
+};
+
+export const earningCrossword2: CrosswordPuzzle = {
+  type: "crossword",
+  id: "eg-earning-cw2",
+  title: "Types of Income: Puzzle 2",
+  topic: "Earning & Growing Money",
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 12,
+  cols: 12,
+  wordBank: ["Dividend", "Cheque", "Gift", "Commission", "Rent", "Interest"],
+  acrossClues: [
+    { number: 3, clue: "Money earned by a salesperson for every item sold; for example, an Mpesa agent's profit.", answer: "COMMISSION", row: 2, col: 2, direction: "across" },
+    { number: 5, clue: "A share of the profits paid out to people who own stock in companies like Safaricom or KCB.", answer: "DIVIDEND", row: 4, col: 0, direction: "across" },
+  ],
+  downClues: [
+    { number: 1, clue: "The money you receive if you own a building and let other people use it either as a house or a shop.", answer: "RENT", row: 0, col: 11, direction: "down" },
+    { number: 2, clue: "Money given to you for a special occasion e.g. on your birthday.", answer: "GIFT", row: 1, col: 9, direction: "down" },
+    { number: 4, clue: "The \"growth\" money you earn just for keeping your savings in a bank account or a Sacco for a given period of time.", answer: "INTEREST", row: 4, col: 1, direction: "down" },
+  ],
+};
+
 export const earningCrossword3: CrosswordPuzzle = {
   type: "crossword",
   id: "eg-earning-cw3",
   title: "Types of Income: Puzzle 3",
   topic: "Earning & Growing Money",
-  instruction: "Fill hustle, freelance, and prize words from the book.",
-  rows: 12,
-  cols: 14,
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 13,
+  cols: 11,
   wordBank: ["Salary", "Prize", "Grants", "Charity", "Hustle", "Business", "Pocket Money", "Freelance"],
   acrossClues: [
-    { number: 1, clue: "A secondary job you do after school or work to earn extra cash.", answer: "HUSTLE", row: 1, col: 0, direction: "across" },
-    { number: 4, clue: "What you win for coming first in a competition that sometimes involves money.", answer: "PRIZE", row: 4, col: 0, direction: "across" },
-    { number: 5, clue: "Work you do independently for different clients instead of one employer.", answer: "FREELANCE", row: 7, col: 0, direction: "across" },
+    { number: 3, clue: "Working on different projects for various clients, such as doing graphic design or academic writing online.", answer: "FREELANCE", row: 4, col: 2, direction: "across" },
+    { number: 4, clue: "Income earned from selling goods or services, like running a small kiosk or an online shop.", answer: "BUSINESS", row: 6, col: 0, direction: "across" },
+    { number: 5, clue: "A sum of money given by an organization or government to a specific person, for a particular purpose, which does not need to be repaid.", answer: "GRANTS", row: 8, col: 0, direction: "across" },
   ],
   downClues: [
-    { number: 2, clue: "Government money given to start a project, not a loan you must repay.", answer: "GRANTS", row: 0, col: 10, direction: "down" },
-    { number: 3, clue: "Small cash parents give for snacks or personal use.", answer: "POCKETMONEY", row: 0, col: 2, direction: "down" },
+    { number: 1, clue: "Small amounts given by parents for personal spending on things like snacks or data.", answer: "POCKETMONEY", row: 2, col: 9, direction: "down" },
+    { number: 2, clue: "What you win for coming first in a competition that sometimes involves money.", answer: "PRIZE", row: 0, col: 4, direction: "down" },
   ],
 };
 
@@ -182,18 +222,18 @@ export const earningCrossword4: CrosswordPuzzle = {
   id: "eg-earning-cw4",
   title: "Types of Income: Puzzle 4",
   topic: "Earning & Growing Money",
-  instruction: "Fill royalties, cashback, pension, and side-hustle clues.",
-  rows: 12,
+  instruction: "Fill the white squares with the correct financial terms.",
+  rows: 13,
   cols: 16,
   wordBank: ["Revenue", "Side Hustle", "Cashback", "Royalties", "Tax", "Bank", "Pension", "Social Security"],
   acrossClues: [
-    { number: 4, clue: "A government safety net that provides financial support to those in need or the elderly.", answer: "SOCIALSECURITY", row: 2, col: 0, direction: "across" },
+    { number: 4, clue: "A government safety net that provides financial support to those in need or the elderly.", answer: "SOCIALSECURITY", row: 4, col: 2, direction: "across" },
     { number: 5, clue: "A secondary job you do after work to earn extra cash, like selling thrifted clothes on Instagram.", answer: "SIDEHUSTLE", row: 6, col: 0, direction: "across" },
   ],
   downClues: [
-    { number: 1, clue: "Payments made to creators for the ongoing use of their intellectual property.", answer: "ROYALTIES", row: 0, col: 14, direction: "down" },
-    { number: 2, clue: "A small percentage of money returned to your wallet after paying via apps like Loop.", answer: "CASHBACK", row: 0, col: 12, direction: "down" },
-    { number: 3, clue: "Regular payments received by retirees after they stop working, often from the NSSF.", answer: "PENSION", row: 3, col: 4, direction: "down" },
+    { number: 1, clue: "Payments made to creators for the ongoing use of their intellectual property.", answer: "ROYALTIES", row: 4, col: 12, direction: "down" },
+    { number: 2, clue: "A small percentage of money returned to your wallet after paying for shopping via apps like Loop at partner outlets.", answer: "CASHBACK", row: 4, col: 10, direction: "down" },
+    { number: 3, clue: "Regular payments received by retirees after they stop working, often from the NSSF.", answer: "PENSION", row: 0, col: 13, direction: "down" },
   ],
 };
 
