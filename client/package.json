@@ -7,8 +7,9 @@
     "dev": "vite dev --port 8081",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "wrangler --cwd .output dev",
-    "deploy": "wrangler --cwd .output deploy",
+    "preview": "npm run prepare:cf && wrangler --cwd .output dev",
+    "prepare:cf": "node scripts/prepare-cloudflare-worker.mjs",
+    "deploy": "npm run build && npm run prepare:cf && wrangler deploy --cwd .output --name mokayaj857-letter-client",
     "login:cf": "wrangler login",
     "lint": "eslint .",
     "format": "prettier --write ."
