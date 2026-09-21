@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -13,6 +14,9 @@ import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { registerLetterboxPwa } from "@/lib/pwa";
+import { consumePendingGoogleSignIn } from "@/lib/firebase";
+import { useUserStore } from "@/lib/userStore";
+import { toast } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -145,10 +149,52 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const navigate = useNavigate();
+  const { loginWithProvider, signupUser, auth } = useUserStore();
 
   useEffect(() => {
     registerLetterboxPwa();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pending = await consumePendingGoogleSignIn();
+        if (!pending || cancelled || auth?.isLoggedIn) return;
+        if (pending.mode === "signup" || pending.isNewUser) {
+          signupUser(
+            pending.displayName,
+            "11",
+            "lion",
+            pending.email,
+            "google",
+            pending.token,
+            undefined,
+            pending.user.uid,
+          );
+        } else {
+          loginWithProvider(
+            "google",
+            pending.email,
+            pending.displayName,
+            "lion",
+            pending.token,
+            pending.user.uid,
+          );
+        }
+        toast.success(`Welcome, ${pending.displayName}!`);
+        navigate({ to: "/", replace: true });
+      } catch (error: any) {
+        if (!cancelled) {
+          toast.error(error?.message || "Google sign-in could not be completed.");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.isLoggedIn, loginWithProvider, signupUser, navigate]);
 
   return (
     <QueryClientProvider client={queryClient}>

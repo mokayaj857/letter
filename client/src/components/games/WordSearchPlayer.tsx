@@ -29,6 +29,9 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
   const [hintsUsed, setHintsUsed] = useState(0);
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const selectingRef = useRef(false);
+  const startRef = useRef<CellCoord | null>(null);
+  const selectedRef = useRef<CellCoord[]>([]);
 
   // Palette of fun highlight colors for found words
   const COLORS = [
@@ -67,25 +70,73 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
     return coords;
   };
 
-  const handleCellMouseDown = (r: number, c: number) => {
+  const cellFromPoint = (clientX: number, clientY: number): CellCoord | null => {
+    const node = document.elementFromPoint(clientX, clientY);
+    if (!(node instanceof Element)) return null;
+    const cell = node.closest("[data-ws-cell]");
+    if (!(cell instanceof HTMLElement) || !gridRef.current?.contains(cell)) return null;
+    const r = Number(cell.dataset.r);
+    const c = Number(cell.dataset.c);
+    if (Number.isNaN(r) || Number.isNaN(c)) return null;
+    return { r, c };
+  };
+
+  const paintSelection = (line: CellCoord[]) => {
+    selectedRef.current = line;
+    setSelectedCoords(line);
+    setActiveWordLetters(line.map((p) => puzzle.grid[p.r]?.[p.c] || "").join(""));
+  };
+
+  const beginSelection = (cell: CellCoord) => {
+    selectingRef.current = true;
+    startRef.current = cell;
     setIsSelecting(true);
-    setStartCoord({ r, c });
-    setSelectedCoords([{ r, c }]);
-    const char = puzzle.grid[r]?.[c] || "";
-    setActiveWordLetters(char);
+    setStartCoord(cell);
+    paintSelection([cell]);
     playPop(settings.soundEnabled);
   };
 
-  const handleCellMouseEnter = (r: number, c: number) => {
-    if (!isSelecting || !startCoord) return;
-    const line = getLineCoords(startCoord, { r, c });
-    setSelectedCoords(line);
-    const word = line.map((p) => puzzle.grid[p.r]?.[p.c] || "").join("");
-    setActiveWordLetters(word);
+  const extendSelection = (cell: CellCoord) => {
+    const start = startRef.current;
+    if (!selectingRef.current || !start) return;
+    paintSelection(getLineCoords(start, cell));
+  };
+
+  const handleGridPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const cell = cellFromPoint(e.clientX, e.clientY);
+    if (!cell) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    beginSelection(cell);
+  };
+
+  const handleGridPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!selectingRef.current) return;
+    const cell = cellFromPoint(e.clientX, e.clientY);
+    if (!cell) return;
+    e.preventDefault();
+    extendSelection(cell);
+  };
+
+  const handleGridPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!selectingRef.current) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Capture may already be released.
+    }
+    checkSelectedWord();
   };
 
   const checkSelectedWord = () => {
-    if (!isSelecting || selectedCoords.length === 0) {
+    const coords = selectedRef.current;
+    const wasSelecting = selectingRef.current;
+    selectingRef.current = false;
+    startRef.current = null;
+    selectedRef.current = [];
+
+    if (!wasSelecting || coords.length === 0) {
       setIsSelecting(false);
       setStartCoord(null);
       setSelectedCoords([]);
@@ -93,10 +144,9 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
       return;
     }
 
-    const forwardWord = selectedCoords.map((p) => puzzle.grid[p.r]?.[p.c] || "").join("");
-    const backwardWord = [...selectedCoords].reverse().map((p) => puzzle.grid[p.r]?.[p.c] || "").join("");
+    const forwardWord = coords.map((p) => puzzle.grid[p.r]?.[p.c] || "").join("");
+    const backwardWord = [...coords].reverse().map((p) => puzzle.grid[p.r]?.[p.c] || "").join("");
 
-    // Normalize words by removing spaces to match grid
     const targetMatch = puzzle.words.find((w) => {
       const cleanTarget = w.replace(/\s+/g, "").toUpperCase();
       return (
@@ -109,7 +159,7 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
       playSuccess(settings.soundEnabled);
       const colorIndex = foundWords.length % COLORS.length;
       const newHighlights = { ...highlightedCells };
-      selectedCoords.forEach((p) => {
+      coords.forEach((p) => {
         newHighlights[getCellKey(p.r, p.c)] = COLORS[colorIndex] || "";
       });
       setHighlightedCells(newHighlights);
@@ -117,7 +167,6 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
       setFoundWords(newFound);
 
       if (newFound.length === puzzle.words.length) {
-        // Complete!
         triggerConfetti();
         setTimeout(() => {
           onComplete(100, 30);
@@ -182,11 +231,7 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
   };
 
   return (
-    <div
-      className="flex flex-col h-full select-none"
-      onMouseUp={checkSelectedWord}
-      onTouchEnd={checkSelectedWord}
-    >
+    <div className="flex flex-col h-full select-none">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-border/50">
         <div>
@@ -219,11 +264,16 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
       <div
         ref={gridRef}
         className="my-auto mx-auto grid bg-card/60 p-2 sm:p-3 rounded-2xl border-2 border-border shadow-sm touch-none"
+        onPointerDown={handleGridPointerDown}
+        onPointerMove={handleGridPointerMove}
+        onPointerUp={handleGridPointerUp}
+        onPointerCancel={handleGridPointerUp}
         style={{
           gridTemplateColumns: `repeat(${puzzle.size}, minmax(0, 1fr))`,
           maxWidth: "420px",
           width: "100%",
           aspectRatio: "1/1",
+          touchAction: "none",
         }}
       >
         {puzzle.grid.map((row, r) =>
@@ -235,10 +285,10 @@ export const WordSearchPlayer: React.FC<Props> = ({ puzzle, onComplete, onClose 
             return (
               <div
                 key={key}
-                onMouseDown={() => handleCellMouseDown(r, c)}
-                onMouseEnter={() => handleCellMouseEnter(r, c)}
-                onTouchStart={() => handleCellMouseDown(r, c)}
-                className={`flex items-center justify-center font-mono font-bold text-xs sm:text-sm rounded-lg border transition-colors cursor-pointer select-none ${selected
+                data-ws-cell
+                data-r={r}
+                data-c={c}
+                className={`flex min-h-[1.75rem] items-center justify-center font-mono font-bold text-xs sm:text-sm rounded-lg border transition-colors cursor-pointer select-none ${selected
                     ? "bg-primary text-primary-foreground border-primary scale-95 shadow-sm font-black"
                     : isHighlighted
                       ? `${isHighlighted}`

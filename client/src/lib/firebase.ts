@@ -5,6 +5,8 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -15,6 +17,7 @@ import {
   getAdditionalUserInfo,
   type Auth,
   type User,
+  type UserCredential,
   type ConfirmationResult,
 } from "firebase/auth";
 
@@ -127,33 +130,67 @@ export function getFirebaseErrorMessage(error: any): string {
     case "auth/popup-closed-by-user":
     case "auth/cancelled-popup-request":
       return "Sign-in popup was closed before completing.";
+    case "auth/popup-blocked":
+      return "The sign-in window was blocked. Allow popups for this site, or try again.";
+    case "auth/unauthorized-domain": {
+      const host = typeof window !== "undefined" ? window.location.hostname : "this domain";
+      return `Google sign-in is not allowed on ${host} yet. In Firebase Console → Authentication → Settings → Authorized domains, add “${host}”.`;
+    }
+    case "auth/operation-not-supported-in-this-environment":
+      return "Google sign-in is not supported in this browser. Try Chrome or Safari.";
+    case "auth/account-exists-with-different-credential":
+      return "This email is already used with another sign-in method. Log in with that method instead.";
     default:
       return msg.replace("Firebase: ", "").replace(/\(auth\/.*\)\.?/, "").trim() || "Authentication failed.";
   }
 }
 
-/**
- * Firebase Google Sign In / Sign Up
- */
-export async function firebaseSignInWithGoogle(mode: "login" | "signup" = "login"): Promise<{
+const GOOGLE_INTENT_KEY = "letterbox-google-auth-mode";
+
+type GoogleAuthMode = "login" | "signup";
+
+export type GoogleAuthResult = {
   user: User;
   email: string;
   displayName: string;
   token?: string | undefined;
   isNewUser?: boolean | undefined;
-}> {
-  const result = await signInWithPopup(auth, googleProvider);
+};
+
+let googleRedirectPromise: Promise<UserCredential | null> | null = null;
+let googleRedirectConsumed = false;
+
+function rememberGoogleIntent(mode: GoogleAuthMode) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(GOOGLE_INTENT_KEY, mode);
+}
+
+export function readGoogleIntent(): GoogleAuthMode {
+  if (typeof window === "undefined") return "login";
+  return sessionStorage.getItem(GOOGLE_INTENT_KEY) === "signup" ? "signup" : "login";
+}
+
+function clearGoogleIntent() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(GOOGLE_INTENT_KEY);
+}
+
+function shouldFallbackToRedirect(error: any) {
+  const code = error?.code || "";
+  return (
+    code === "auth/popup-blocked" ||
+    code === "auth/popup-closed-by-user" ||
+    code === "auth/cancelled-popup-request" ||
+    code === "auth/operation-not-supported-in-this-environment" ||
+    code === "auth/internal-error"
+  );
+}
+
+async function finishGoogleCredential(
+  result: UserCredential,
+  _mode: GoogleAuthMode,
+): Promise<GoogleAuthResult> {
   const info = getAdditionalUserInfo(result);
-
-  if (mode === "login" && info?.isNewUser) {
-    try {
-      await result.user.delete();
-    } catch {
-      await signOut(auth);
-    }
-    throw new Error("No account found for this Google account. Please sign up first.");
-  }
-
   const user = result.user;
   const token = await user.getIdToken().catch(() => undefined);
   const email = user.email || "user@gmail.com";
@@ -165,6 +202,46 @@ export async function firebaseSignInWithGoogle(mode: "login" | "signup" = "login
     token,
     isNewUser: info?.isNewUser ?? undefined,
   };
+}
+
+/** Must run once on app load so Cloudflare/PWA redirect sign-in can finish. */
+export function getPendingGoogleRedirect(): Promise<UserCredential | null> {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  if (!googleRedirectPromise) {
+    googleRedirectPromise = getRedirectResult(auth).catch(() => null);
+  }
+  return googleRedirectPromise;
+}
+
+export async function consumePendingGoogleSignIn(): Promise<
+  (GoogleAuthResult & { mode: GoogleAuthMode }) | null
+> {
+  const result = await getPendingGoogleRedirect();
+  if (!result || googleRedirectConsumed) return null;
+  googleRedirectConsumed = true;
+  const mode = readGoogleIntent();
+  clearGoogleIntent();
+  return { ...(await finishGoogleCredential(result, mode)), mode };
+}
+
+/**
+ * Firebase Google Sign In / Sign Up.
+ * Popup first, then full-page redirect — popups often fail on Cloudflare and phones.
+ */
+export async function firebaseSignInWithGoogle(mode: GoogleAuthMode = "login"): Promise<GoogleAuthResult> {
+  rememberGoogleIntent(mode);
+
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    clearGoogleIntent();
+    return finishGoogleCredential(result, mode);
+  } catch (error: any) {
+    if (shouldFallbackToRedirect(error)) {
+      await signInWithRedirect(auth, googleProvider);
+      await new Promise<never>(() => {});
+    }
+    throw error;
+  }
 }
 
 /**

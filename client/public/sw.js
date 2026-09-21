@@ -1,4 +1,4 @@
-const VERSION = "letterbox-offline-v1";
+const VERSION = "letterbox-offline-v2";
 const PAGE_CACHE = `${VERSION}-pages`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const FONT_CACHE = `${VERSION}-fonts`;
@@ -38,6 +38,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
+  if (isAuthRequest(url)) return;
 
   if (isFontRequest(url)) {
     event.respondWith(cacheFirst(request, FONT_CACHE, 40));
@@ -53,6 +54,19 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(staleWhileRevalidate(request, ASSET_CACHE, MAX_ASSET_ENTRIES));
   }
 });
+
+function isAuthRequest(url) {
+  const host = url.hostname;
+  return (
+    url.pathname.includes("/__/auth") ||
+    host.endsWith("firebaseapp.com") ||
+    host.endsWith("web.app") ||
+    host.endsWith("googleapis.com") ||
+    host.endsWith("google.com") ||
+    host.endsWith("googleusercontent.com") ||
+    (host.endsWith("gstatic.com") && !host.startsWith("fonts."))
+  );
+}
 
 function isFontRequest(url) {
   return (

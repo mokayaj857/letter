@@ -341,6 +341,11 @@ function Journey() {
                 ? "max-w-lg h-[min(100dvh,100svh)] max-h-[min(100dvh,100svh)] sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] p-3 sm:p-6"
                 : "max-w-sm sm:max-w-lg max-h-[calc(100dvh-1.5rem)]"
             }`}
+            style={
+              activeLevel.gameData?.type === "wordsearch"
+                ? { overscrollBehavior: "contain" }
+                : undefined
+            }
           >
             <button
               type="button"
