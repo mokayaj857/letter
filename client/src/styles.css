@@ -395,6 +395,38 @@
   animation: pulse-glow 2.5s ease-in-out infinite;
 }
 
+@keyframes art-drift {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(6deg);
+  }
+}
+
+@utility animate-art-drift {
+  animation: art-drift 3.8s ease-in-out infinite;
+}
+
+@keyframes spotlight-timer {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.spotlight-timer {
+  width: 0%;
+  animation: spotlight-timer 5.2s linear forwards;
+}
+
+.spotlight-timer-paused {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

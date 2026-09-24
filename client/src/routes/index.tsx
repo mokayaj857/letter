@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Flame, Zap, ChevronRight, Lock, Play, Sparkles } from "lucide-react";
+import { Flame, Zap, ChevronRight, Lock, Play } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
 import { Coin } from "@/components/Coin";
-import mascot from "@/assets/mascot.png";
+import { QuestSpotlight } from "@/components/QuestSpotlight";
 import { avatars, icons } from "@/assets/icons";
 import { games } from "@/data/games";
 import { useUserStore } from "../lib/userStore";
@@ -95,38 +95,7 @@ function GamesHub() {
           />
         </div>
 
-        <section
-          className="mt-5 animate-slide-up overflow-hidden rounded-3xl border-2 border-border bg-leaf p-5 shadow-card"
-          style={{ animationDelay: "220ms" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary-foreground/75">
-                Daily challenge
-              </p>
-              <p className="mt-1 font-display text-lg font-bold text-primary-foreground">
-                Build a KES 5,000 monthly budget
-              </p>
-              <p className="mt-1 text-sm text-primary-foreground/85">
-                Beat it today for +150 XP and keep your streak alive.
-              </p>
-              <Link
-                to="/journey/$gameId"
-                params={{ gameId: "budgeting" }}
-                className="press mt-3 inline-block rounded-2xl bg-card px-5 py-2 font-display text-sm font-bold text-primary-deep shadow-pop hover:-translate-y-0.5 active:translate-y-1 active:shadow-none"
-              >
-                Start challenge
-              </Link>
-            </div>
-            <img
-              src={mascot}
-              alt="Boxy the Letterbox mascot"
-              width={768}
-              height={768}
-              className="size-24 animate-bob object-contain drop-shadow"
-            />
-          </div>
-        </section>
+        <QuestSpotlight xp={user.xp} soundEnabled={settings.soundEnabled} />
 
         <div className="mt-7 flex items-baseline justify-between">
           <h2 className="font-display text-xl font-bold text-primary-deep">Pillars of Money</h2>
