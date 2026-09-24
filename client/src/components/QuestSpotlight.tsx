@@ -67,7 +67,7 @@ export function QuestSpotlight({
 
   const isDailyCompleted = !!dailyChallenge?.completed;
 
-  // Curated slides: Daily Challenge + All 7 Pillars of Money (All image imports verified)
+  // Curated slides: Daily Challenge + All 7 Pillars of Money (Preserving original theme colors)
   const slides: PillarSlide[] = [
     {
       id: "daily-budget",
@@ -81,12 +81,12 @@ export function QuestSpotlight({
       artAlt: "Boxy the Letterbox mascot",
       theme: {
         bg: "bg-leaf text-primary-foreground",
-        kickerColor: "text-emerald-200",
-        badgeBg: "bg-emerald-400/20 text-emerald-100 border border-emerald-400/30",
+        kickerColor: "text-primary-foreground/80",
+        badgeBg: "bg-primary-foreground/18 text-primary-foreground border border-primary-foreground/20",
         buttonBg: "bg-card text-primary-deep shadow-pop",
         buttonText: "text-primary-deep",
-        glowColor: "bg-emerald-400/25",
-        pedestalBg: "bg-emerald-800/30",
+        glowColor: "bg-primary-foreground/20",
+        pedestalBg: "bg-card/20 border border-white/20",
       },
     },
     {
@@ -102,12 +102,12 @@ export function QuestSpotlight({
       linkTo: "/journey/money-basics",
       theme: {
         bg: "bg-sunny text-sun-foreground",
-        kickerColor: "text-amber-950/80",
-        badgeBg: "bg-amber-950/15 text-amber-950 border border-amber-900/20",
+        kickerColor: "text-sun-foreground/80",
+        badgeBg: "bg-sun-foreground/12 text-sun-foreground border border-sun-foreground/15",
         buttonBg: "bg-card text-sun-foreground shadow-pop-sun",
         buttonText: "text-sun-foreground",
-        glowColor: "bg-amber-300/40",
-        pedestalBg: "bg-amber-600/20",
+        glowColor: "bg-sun/40",
+        pedestalBg: "bg-card/20 border border-sun-foreground/15",
       },
     },
     {
@@ -123,12 +123,12 @@ export function QuestSpotlight({
       linkTo: "/journey/global-money",
       theme: {
         bg: "bg-sky text-sky-foreground",
-        kickerColor: "text-sky-950/80",
-        badgeBg: "bg-sky-950/15 text-sky-950 border border-sky-950/20",
+        kickerColor: "text-sky-foreground/80",
+        badgeBg: "bg-sky-foreground/12 text-sky-foreground border border-sky-foreground/15",
         buttonBg: "bg-card text-sky-foreground shadow-pop",
         buttonText: "text-sky-foreground",
-        glowColor: "bg-sky-400/30",
-        pedestalBg: "bg-sky-600/20",
+        glowColor: "bg-card/40",
+        pedestalBg: "bg-card/20 border border-sky-foreground/15",
       },
     },
     {
@@ -144,12 +144,12 @@ export function QuestSpotlight({
       linkTo: "/journey/earning",
       theme: {
         bg: "bg-leaf text-primary-foreground",
-        kickerColor: "text-emerald-200",
-        badgeBg: "bg-emerald-400/20 text-emerald-100 border border-emerald-400/30",
+        kickerColor: "text-primary-foreground/80",
+        badgeBg: "bg-primary-foreground/18 text-primary-foreground border border-primary-foreground/20",
         buttonBg: "bg-card text-primary-deep shadow-pop",
         buttonText: "text-primary-deep",
-        glowColor: "bg-emerald-400/25",
-        pedestalBg: "bg-emerald-800/30",
+        glowColor: "bg-primary-foreground/20",
+        pedestalBg: "bg-card/20 border border-white/20",
       },
     },
     {
@@ -165,12 +165,12 @@ export function QuestSpotlight({
       isComingSoon: true,
       theme: {
         bg: "bg-sunny text-sun-foreground",
-        kickerColor: "text-amber-950/80",
-        badgeBg: "bg-amber-950/15 text-amber-950 border border-amber-900/20",
+        kickerColor: "text-sun-foreground/80",
+        badgeBg: "bg-sun-foreground/12 text-sun-foreground border border-sun-foreground/15",
         buttonBg: "bg-card text-sun-foreground shadow-pop-sun",
         buttonText: "text-sun-foreground",
-        glowColor: "bg-amber-300/40",
-        pedestalBg: "bg-amber-600/20",
+        glowColor: "bg-sun/40",
+        pedestalBg: "bg-card/20 border border-sun-foreground/15",
       },
     },
     {
@@ -186,12 +186,12 @@ export function QuestSpotlight({
       linkTo: "/journey/budgeting",
       theme: {
         bg: "bg-leaf text-primary-foreground",
-        kickerColor: "text-emerald-200",
-        badgeBg: "bg-emerald-400/20 text-emerald-100 border border-emerald-400/30",
+        kickerColor: "text-primary-foreground/80",
+        badgeBg: "bg-primary-foreground/18 text-primary-foreground border border-primary-foreground/20",
         buttonBg: "bg-card text-primary-deep shadow-pop",
         buttonText: "text-primary-deep",
-        glowColor: "bg-emerald-400/25",
-        pedestalBg: "bg-emerald-800/30",
+        glowColor: "bg-primary-foreground/20",
+        pedestalBg: "bg-card/20 border border-white/20",
       },
     },
     {
@@ -207,12 +207,12 @@ export function QuestSpotlight({
       linkTo: "/journey/saving",
       theme: {
         bg: "bg-sky text-sky-foreground",
-        kickerColor: "text-sky-950/80",
-        badgeBg: "bg-sky-950/15 text-sky-950 border border-sky-950/20",
+        kickerColor: "text-sky-foreground/80",
+        badgeBg: "bg-sky-foreground/12 text-sky-foreground border border-sky-foreground/15",
         buttonBg: "bg-card text-sky-foreground shadow-pop",
         buttonText: "text-sky-foreground",
-        glowColor: "bg-sky-400/30",
-        pedestalBg: "bg-sky-600/20",
+        glowColor: "bg-card/40",
+        pedestalBg: "bg-card/20 border border-sky-foreground/15",
       },
     },
     {
@@ -228,12 +228,12 @@ export function QuestSpotlight({
       linkTo: "/journey/investing",
       theme: {
         bg: "bg-berry text-berry-foreground",
-        kickerColor: "text-rose-200",
-        badgeBg: "bg-rose-400/20 text-rose-100 border border-rose-400/30",
-        buttonBg: "bg-card text-berry-foreground shadow-pop",
-        buttonText: "text-berry-foreground",
-        glowColor: "bg-rose-400/30",
-        pedestalBg: "bg-rose-900/30",
+        kickerColor: "text-berry-foreground/85",
+        badgeBg: "bg-berry-foreground/18 text-berry-foreground border border-berry-foreground/20",
+        buttonBg: "bg-card text-primary-deep shadow-pop",
+        buttonText: "text-primary-deep",
+        glowColor: "bg-berry-foreground/15",
+        pedestalBg: "bg-card/20 border border-white/20",
       },
     },
   ];
