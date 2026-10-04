@@ -82,6 +82,7 @@ export interface LetterboxState {
     xp: number;
     coins: number;
   };
+  weeklyAnswers: Record<string, string>;
   auth: {
     isLoggedIn: boolean;
     email?: string;
@@ -135,13 +136,15 @@ const DEFAULT_STATE: LetterboxState = {
     "smart-spender": 0,
     "digital-money": 0,
     "young-hustler": 0,
+    "weekly-challenge": 0,
   },
   dailyChallenge: {
     completed: false,
-    title: "Build a KES 5,000 monthly budget",
+    title: "The 52-Week Savings Challenge",
     xp: 150,
     coins: 40,
   },
+  weeklyAnswers: {},
   auth: {
     isLoggedIn: false,
   },
@@ -241,6 +244,7 @@ function persistLocalProgress() {
         ownedItems: globalState.ownedItems,
         badges: globalState.badges,
         dailyChallenge: globalState.dailyChallenge,
+        weeklyAnswers: globalState.weeklyAnswers,
         auth: {
           isLoggedIn: globalState.auth.isLoggedIn,
           email: globalState.auth.email,
@@ -270,6 +274,7 @@ function restoreLocalProgress() {
       ownedItems: parsed.ownedItems || globalState.ownedItems,
       badges: parsed.badges || globalState.badges,
       dailyChallenge: parsed.dailyChallenge || globalState.dailyChallenge,
+      weeklyAnswers: parsed.weeklyAnswers || globalState.weeklyAnswers,
       auth: sessionOk
         ? { ...globalState.auth, ...(parsed.auth || {}) }
         : globalState.auth,
@@ -603,6 +608,17 @@ export function useUserStore() {
     }
   }, []);
 
+  const saveWeeklyAnswer = useCallback((week: number, answer: string) => {
+    globalState = {
+      ...globalState,
+      weeklyAnswers: {
+        ...(globalState.weeklyAnswers || {}),
+        [String(week)]: answer,
+      },
+    };
+    emitChange();
+  }, []);
+
   const isAccountRegistered = useCallback((emailOrPhone: string): boolean => {
     if (!emailOrPhone) return false;
     const norm = emailOrPhone.trim().toLowerCase();
@@ -813,6 +829,7 @@ export function useUserStore() {
     badges: state.badges,
     gameProgress: state.gameProgress,
     dailyChallenge: state.dailyChallenge,
+    weeklyAnswers: state.weeklyAnswers || {},
     auth: state.auth,
     registeredAccounts: state.registeredAccounts,
     // Actions
@@ -831,6 +848,7 @@ export function useUserStore() {
     depositToGoal,
     buyShopItem,
     completeLevel,
+    saveWeeklyAnswer,
     loginWithProvider,
     signupUser,
     logout,

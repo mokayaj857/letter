@@ -18,10 +18,10 @@ import {
 import mascot from "@/assets/mascot.png";
 import { gameArt, icons } from "@/assets/icons";
 import { useUserStore } from "@/lib/userStore";
-import { playPop, playSuccess } from "@/lib/audio";
-import { triggerConfetti } from "@/lib/confetti";
+import { playPop } from "@/lib/audio";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { WEEKLY_GAME_ID } from "@/data/weeklyChallenges";
 
 const SLIDE_DURATION_MS = 6200;
 
@@ -55,7 +55,7 @@ export function QuestSpotlight({
   xp?: number;
   soundEnabled?: boolean;
 }) {
-  const { user, settings, dailyChallenge, completeDailyChallenge } = useUserStore();
+  const { settings, dailyChallenge, gameProgress } = useUserStore();
   const isSoundOn = soundEnabled ?? settings.soundEnabled;
   const navigate = useNavigate();
 
@@ -74,9 +74,9 @@ export function QuestSpotlight({
       kicker: "Daily challenge",
       badge: isDailyCompleted ? "Completed" : "+150 XP",
       badgeIcon: isDailyCompleted ? Check : Zap,
-      title: "Build a KES 5,000 monthly budget",
-      description: "Beat it today for +150 XP and keep your streak alive.",
-      buttonText: isDailyCompleted ? "Completed today" : "Start challenge",
+      title: "The 52-Week Savings Challenge",
+      description: "KSh 100 a week. Open the path, keep the jar growing.",
+      buttonText: isDailyCompleted ? "Continue path" : "Start challenge",
       art: mascot,
       artAlt: "Boxy the Letterbox mascot",
       theme: {
@@ -295,13 +295,9 @@ export function QuestSpotlight({
     playPop(isSoundOn);
 
     if (slide.id === "daily-budget") {
-      if (!isDailyCompleted) {
-        completeDailyChallenge(150, 40);
-        playSuccess(isSoundOn);
-        triggerConfetti();
-        toast.success("Daily Challenge Complete! +150 XP & +40 Coins awarded!");
-      }
-      navigate({ to: "/journey/budgeting" });
+      const done = gameProgress[WEEKLY_GAME_ID] ?? 0;
+      const week = Math.min(104, Math.max(1, done + 1));
+      navigate({ to: "/challenge/$week", params: { week: String(week) } });
       return;
     }
 
@@ -340,6 +336,10 @@ export function QuestSpotlight({
                   ? "relative z-10 opacity-100 scale-100 pointer-events-auto translate-y-0"
                   : "absolute inset-0 z-0 opacity-0 scale-[0.98] pointer-events-none translate-y-1",
               )}
+              onClick={() => {
+                if (slide.id === "daily-budget" && isActive) handleActionClick(slide);
+              }}
+              role={slide.id === "daily-budget" ? "link" : undefined}
             >
               {/* Soft Ambient Light Glows */}
               <span
@@ -415,7 +415,10 @@ export function QuestSpotlight({
                   <div className="mt-3.5">
                     <button
                       type="button"
-                      onClick={() => handleActionClick(slide)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleActionClick(slide);
+                      }}
                       className={cn(
                         "press inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 font-display text-xs font-bold transition-transform hover:-translate-y-0.5 active:scale-95",
                         slide.theme.buttonBg,

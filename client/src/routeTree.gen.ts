@@ -10,16 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChallengeRouteImport } from './routes/challenge'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RewardsRouteImport } from './routes/rewards'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ChallengeIndexRouteImport } from './routes/challenge.index'
+import { Route as ChallengeWeekRouteImport } from './routes/challenge.$week'
 import { Route as JourneyGameIdRouteImport } from './routes/journey.$gameId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengeRoute = ChallengeRouteImport.update({
+  id: '/challenge',
+  path: '/challenge',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
@@ -47,6 +55,16 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChallengeIndexRoute = ChallengeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ChallengeRoute,
+} as any)
+const ChallengeWeekRoute = ChallengeWeekRouteImport.update({
+  id: '/$week',
+  path: '/$week',
+  getParentRoute: () => ChallengeRoute,
+} as any)
 const JourneyGameIdRoute = JourneyGameIdRouteImport.update({
   id: '/journey/$gameId',
   path: '/journey/$gameId',
@@ -55,12 +73,15 @@ const JourneyGameIdRoute = JourneyGameIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/challenge': typeof ChallengeRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/rewards': typeof RewardsRoute
   '/signup': typeof SignupRoute
+  '/challenge/$week': typeof ChallengeWeekRoute
   '/journey/$gameId': typeof JourneyGameIdRoute
+  '/challenge/': typeof ChallengeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,28 +90,36 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/rewards': typeof RewardsRoute
   '/signup': typeof SignupRoute
+  '/challenge/$week': typeof ChallengeWeekRoute
   '/journey/$gameId': typeof JourneyGameIdRoute
+  '/challenge': typeof ChallengeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/challenge': typeof ChallengeRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/rewards': typeof RewardsRoute
   '/signup': typeof SignupRoute
+  '/challenge/$week': typeof ChallengeWeekRoute
   '/journey/$gameId': typeof JourneyGameIdRoute
+  '/challenge/': typeof ChallengeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/challenge'
     | '/leaderboard'
     | '/login'
     | '/profile'
     | '/rewards'
     | '/signup'
+    | '/challenge/$week'
     | '/journey/$gameId'
+    | '/challenge/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -99,20 +128,26 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rewards'
     | '/signup'
+    | '/challenge/$week'
     | '/journey/$gameId'
+    | '/challenge'
   id:
     | '__root__'
     | '/'
+    | '/challenge'
     | '/leaderboard'
     | '/login'
     | '/profile'
     | '/rewards'
     | '/signup'
+    | '/challenge/$week'
     | '/journey/$gameId'
+    | '/challenge/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChallengeRoute: typeof ChallengeRouteWithChildren
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
@@ -128,6 +163,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenge': {
+      id: '/challenge'
+      path: '/challenge'
+      fullPath: '/challenge'
+      preLoaderRoute: typeof ChallengeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leaderboard': {
@@ -165,6 +207,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/challenge/': {
+      id: '/challenge/'
+      path: '/'
+      fullPath: '/challenge/'
+      preLoaderRoute: typeof ChallengeIndexRouteImport
+      parentRoute: typeof ChallengeRoute
+    }
+    '/challenge/$week': {
+      id: '/challenge/$week'
+      path: '/$week'
+      fullPath: '/challenge/$week'
+      preLoaderRoute: typeof ChallengeWeekRouteImport
+      parentRoute: typeof ChallengeRoute
+    }
     '/journey/$gameId': {
       id: '/journey/$gameId'
       path: '/journey/$gameId'
@@ -175,8 +231,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ChallengeRouteChildren {
+  ChallengeWeekRoute: typeof ChallengeWeekRoute
+  ChallengeIndexRoute: typeof ChallengeIndexRoute
+}
+
+const ChallengeRouteChildren: ChallengeRouteChildren = {
+  ChallengeWeekRoute: ChallengeWeekRoute,
+  ChallengeIndexRoute: ChallengeIndexRoute,
+}
+
+const ChallengeRouteWithChildren = ChallengeRoute._addFileChildren(
+  ChallengeRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChallengeRoute: ChallengeRouteWithChildren,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
