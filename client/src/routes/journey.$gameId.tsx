@@ -32,6 +32,7 @@ import { CrosswordPlayer } from "@/components/games/CrosswordPlayer";
 import { QuizPlayer } from "@/components/games/QuizPlayer";
 import { CryptogramPlayer } from "@/components/games/CryptogramPlayer";
 import { SpecialActivitiesPlayer } from "@/components/games/SpecialActivitiesPlayer";
+import { LifeMoneyPath } from "@/components/LifeMoneyPath";
 
 export const Route = createFileRoute("/journey/$gameId")({
   loader: ({ params }) => {
@@ -149,6 +150,8 @@ function Journey() {
   const [earnedRewards, setEarnedRewards] = useState({ xp: 50, coins: 20 });
 
   const activeLevel = playingLevelIndex !== null ? game.levels[playingLevelIndex] : null;
+  const isPaperQuiz =
+    activeLevel?.gameData?.type === "quiz" && Boolean(activeLevel.gameData.questions[0]?.lessonBody);
 
   const startLevel = (idx: number) => {
     unlockAudio();
@@ -212,6 +215,11 @@ function Journey() {
 
   return (
     <>
+      {game.id === "life-money" ? (
+        <Screen>
+          <LifeMoneyPath levels={game.levels} progress={currentProgress} onPlay={startLevel} />
+        </Screen>
+      ) : (
       <Screen>
         <header className="flex items-center gap-3">
           <Link
@@ -327,19 +335,30 @@ function Journey() {
           {currentProgress === 0 ? "Start journey" : "Continue journey"}
         </button>
       </Screen>
+      )}
+
+      {playingLevelIndex !== null && activeLevel && !victoryModal && isPaperQuiz && (
+        <QuizPlayer
+          puzzle={activeLevel.gameData as Extract<NonNullable<typeof activeLevel.gameData>, { type: "quiz" }>}
+          onComplete={(xp, coins) => handleFinishLevel(xp, coins)}
+          onClose={() => setPlayingLevelIndex(null)}
+        />
+      )}
 
       {/* Playable Level Runner Modal */}
-      {playingLevelIndex !== null && activeLevel && !victoryModal && (
+      {playingLevelIndex !== null && activeLevel && !victoryModal && !isPaperQuiz && (
         <div
           className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/60 backdrop-blur-md animate-in fade-in duration-200 ${
             activeLevel.gameData?.type === "crossword" ? "p-0 sm:p-5" : "overflow-y-auto p-3 sm:p-5"
           }`}
         >
           <div
-            className={`relative w-full overflow-y-auto rounded-4xl border-2 border-border bg-card p-4 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto flex flex-col min-h-0 ${
+            className={`relative w-full overflow-y-auto rounded-4xl border-2 border-border bg-card shadow-float animate-pop-in overscroll-contain my-auto flex flex-col min-h-0 ${
               activeLevel.gameData?.type === "crossword"
                 ? "max-w-lg h-[min(100dvh,100svh)] max-h-[min(100dvh,100svh)] sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] p-3 sm:p-6"
-                : "max-w-sm sm:max-w-lg max-h-[calc(100dvh-1.5rem)]"
+                : activeLevel.gameData?.type === "quiz" && activeLevel.gameData.questions[0]?.lessonBody
+                  ? "max-w-[380px] h-[min(90dvh,720px)] max-h-[calc(100dvh-1.5rem)] overflow-hidden p-0"
+                : "max-w-sm sm:max-w-lg max-h-[calc(100dvh-1.5rem)] p-4 sm:p-6"
             }`}
             style={
               activeLevel.gameData?.type === "wordsearch"
@@ -650,7 +669,7 @@ function Journey() {
         </div>
       )}
 
-      <BottomNav />
+      {!isPaperQuiz && <BottomNav />}
     </>
   );
 }

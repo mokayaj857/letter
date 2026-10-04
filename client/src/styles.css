@@ -265,6 +265,20 @@
   animation: wiggle 1.6s ease-in-out infinite;
 }
 
+@keyframes trail-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.85 0.16 85 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 16px oklch(0.85 0.16 85 / 0);
+  }
+}
+
+@utility animate-trail-pulse {
+  animation: trail-pulse 1.8s ease-out infinite;
+}
+
 @keyframes float-soft {
   0%,
   100% {

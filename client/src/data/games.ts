@@ -176,6 +176,15 @@ import {
   investingQuiz1,
   investingQuiz2,
 } from "@/games/earning-growing/investing";
+import {
+  buyingCarQuiz,
+  buyingHouseQuiz,
+  cryptocurrencyQuiz,
+  gamblingQuiz,
+  philanthropyQuiz,
+  financialDiscriminationQuiz,
+} from "@/games/life-money";
+import { chunkQuiz } from "@/games/life-money/helpers";
 
 export interface Level {
   title: string;
@@ -481,6 +490,22 @@ export const games: Game[] = [
         lv("Digital Economy & Cloud Tech: Quiz", "quiz", 80, digitalEconomyQuiz),
         lv("The Smart Money Pledge Ceremony", "activity", 100, smartMoneyPledgeActivity),
       ]),
+    ]),
+  },
+  {
+    id: "life-money",
+    title: "Life Money",
+    blurb: "Cars, houses, crypto, betting, giving, and fair access to money.",
+    art: gameArt["young-hustler"],
+    tint: "bg-leaf",
+    done: 0,
+    levels: withProgress([
+      ...chunkQuiz(buyingCarQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(buyingHouseQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(cryptocurrencyQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(gamblingQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(philanthropyQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(financialDiscriminationQuiz).map((p) => lv(p.title, "quiz", 50, p)),
     ]),
   },
 ];

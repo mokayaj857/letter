@@ -47,6 +47,9 @@ export interface QuizQuestion {
   correctIndex: number;
   explanation: string;
   hint?: string;
+  lessonTitle?: string;
+  lessonBody?: string;
+  tryAgain?: string;
 }
 
 export interface QuizPuzzle {
@@ -54,6 +57,7 @@ export interface QuizPuzzle {
   id: string;
   title: string;
   topic: string;
+  theme?: string;
   instruction?: string;
   questions: QuizQuestion[];
 }

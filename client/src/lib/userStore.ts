@@ -137,6 +137,7 @@ const DEFAULT_STATE: LetterboxState = {
     "digital-money": 0,
     "young-hustler": 0,
     "weekly-challenge": 0,
+    "life-money": 0,
   },
   dailyChallenge: {
     completed: false,
