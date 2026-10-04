@@ -1,5 +1,20 @@
 import type { QuizPuzzle, QuizQuestion } from "../types";
 
+function placeCorrect(options: string[], correctIndex: number, id: number) {
+  const n = options.length;
+  const correct = options[correctIndex] ?? options[0];
+  const rest = options.filter((_, i) => i !== correctIndex);
+  let s = id * 2654435761;
+  for (let i = rest.length - 1; i > 0; i--) {
+    s = (s ^ (s >>> 16)) >>> 0;
+    const j = s % (i + 1);
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  const target = (id - 1) % n;
+  rest.splice(target, 0, correct);
+  return { options: rest, correctIndex: target };
+}
+
 export function q(
   id: number,
   lessonTitle: string,
@@ -10,13 +25,14 @@ export function q(
   explanation: string,
   tryAgain: string,
 ): QuizQuestion {
+  const shuffled = placeCorrect(options, correctIndex, id);
   return {
     id,
     lessonTitle,
     lessonBody,
     question,
-    options,
-    correctIndex,
+    options: shuffled.options,
+    correctIndex: shuffled.correctIndex,
     explanation,
     tryAgain,
     hint: tryAgain,
