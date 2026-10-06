@@ -494,7 +494,7 @@ export const games: Game[] = [
   },
   {
     id: "life-money",
-    title: "Life Money",
+    title: "Life Skills",
     blurb: "Cars, houses, crypto, betting, giving, and fair access to money.",
     art: gameArt["young-hustler"],
     tint: "bg-leaf",

@@ -3,7 +3,7 @@ import { lessonQuiz, q } from "./helpers";
 export const buyingCarQuiz = lessonQuiz(
   "lm-buying-car",
   "Buying a Car",
-  "Life Money",
+  "Life Skills",
   "Car buying, loans, and ownership costs",
   [
     q(
@@ -40,7 +40,7 @@ export const buyingCarQuiz = lessonQuiz(
         "The initial dealership documentation fee",
         "Regular auto insurance premiums",
         "A one-time custom paint job",
-        "A dealership welcome gift",
+        "Regular car service",
       ],
       1,
       "Great job! Insurance is a recurring, mandatory expense that directly impacts your monthly wallet alongside fuel and routine servicing.",
@@ -64,7 +64,7 @@ export const buyingCarQuiz = lessonQuiz(
     q(
       5,
       "Needs vs. Wants",
-      "Separate your needs like reliability, safety features, and fuel efficiency from your wants such as premium sound systems, sunroofs, and leather seats. Upgrading your wants can inflate a car loan by thousands.",
+      'Separate your needs like reliability, safety features, fuel efficiency from your wants such as premium sound systems, sunroofs, leather seats. Upgrading your "wants" can inflate a car loan by thousands.',
       'Which of the following features should be categorized strictly as a "need" for a daily commuter who travels over rough roads?',
       [
         "Heated steering wheel and seats",
@@ -99,7 +99,7 @@ export const buyingCarQuiz = lessonQuiz(
       [
         "The car was custom-built for racing",
         "The car has been declared a total loss by an insurance company due to severe damage",
-        "The car was previously damaged but has since been repaired accordingly",
+        "The car was previously damaged by has since been repaired accordingly",
       ],
       1,
       "Correct! A salvage title warns you that the car suffered massive damage or flooding. It can be incredibly unsafe and difficult to insure or resell.",
@@ -108,7 +108,7 @@ export const buyingCarQuiz = lessonQuiz(
     q(
       8,
       "Checking Insurance Brackets",
-      "Before buying a particular car, call your insurance provider for a quote. Cars with high theft rates, powerful engines, or expensive spare parts sit in higher insurance brackets, drastically raising your monthly premium.",
+      "Before buying a particular, call your insurance provider for a quote. Cars with high theft rates, powerful engines, or expensive spare parts sit in higher insurance brackets, drastically raising your monthly premium.",
       "Why might a modest sports car cost significantly more to insure than a mid-sized SUV of the exact same market value?",
       [
         "Sports cars always have larger boots",
@@ -122,7 +122,7 @@ export const buyingCarQuiz = lessonQuiz(
     ),
     q(
       9,
-      "Interest Rates and APR",
+      "Interest Rates and Annual Percentage Rate (APR)",
       "The Annual Percentage Rate (APR) reflects the true cost of borrowing money. It includes both the base interest rate and any extra lender fees. Even a 2% difference in APR can save or cost you tens of thousands over a 48-month loan.",
       "When shopping around for an auto loan, which factor gives you the most accurate picture of the total yearly borrowing cost?",
       [
@@ -153,7 +153,7 @@ export const buyingCarQuiz = lessonQuiz(
       11,
       "The Power of a Down Payment",
       "A large down payment cuts down the amount of money you need to borrow. This instantly shrinks your monthly bill, lowers your interest charges, and prevents you from owing more than the car is worth as it depreciates.",
-      "How does making a 20% down payment instead of a 0% down payment protect you from becoming upside down on your auto loan?",
+      "How does making a 20% down payment instead of a 0% down payment protect you from becoming paying more interest on your auto loan?",
       [
         "It lowers the car loan amount you need to sign up for in order to buy a car",
         "It builds immediate equity, ensuring your loan balance stays below the car's dropping market value",
@@ -171,7 +171,7 @@ export const buyingCarQuiz = lessonQuiz(
       [
         "To secure financing before going shopping for a car",
         "It gives you a benchmark interest rate leverage point to negotiate against dealer financing",
-        "It enables you to compare loan terms with that of the dealership therefore enabling the favourable option",
+        "It enables you to compare loans terms with that of the dealership therefore enabling the favourable option",
       ],
       1,
       "Spot on! Pre-approval sets a hard ceiling on interest. If the dealer wants you to use their financing, they have to beat your bank's rate.",
@@ -181,7 +181,7 @@ export const buyingCarQuiz = lessonQuiz(
       13,
       "Out-the-Door Price",
       'Salespeople love to ask, "What monthly payment can you afford?" This allows them to stretch loan terms to hide a high sales price. Always negotiate the Out-the-Door (OTD) price, which represents the total cost including all fees and taxes.',
-      'If a salesperson insists on negotiating strictly around your "monthly target payment," how should you redirect the conversation?',
+      'If a salesperson insists on focus negotiating strictly around your "monthly target payment," how should you redirect the conversation?',
       [
         "Agree and mention the highest possible number you can afford",
         "Insist on negotiating the total price of the vehicle first",

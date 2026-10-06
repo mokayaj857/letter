@@ -239,14 +239,14 @@ export function QuestSpotlight({
     },
     {
       id: "life-money",
-      kicker: "Pillar 8 · Life Money",
+      kicker: "Pillar 8 · Life Skills",
       badge: "Real World",
       badgeIcon: Scale,
       title: "Cars, Homes, Crypto & Fair Finance",
       description: "Read the lesson, then answer. Walk the path from buying a car to fighting bias.",
-      buttonText: "Start Life Money",
+      buttonText: "Start Life Skills",
       art: gameArt["young-hustler"],
-      artAlt: "Life Money",
+      artAlt: "Life Skills",
       linkTo: "/journey/life-money",
       theme: {
         bg: "bg-leaf text-primary-foreground",

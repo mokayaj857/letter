@@ -194,13 +194,13 @@ export function LessonQuizPlayer({ puzzle, onComplete, onClose }: Props) {
                     !isWin && !isFail && "border border-border bg-card",
                   )}
                 >
-                  <div className="relative z-[1] flex items-center gap-2.5">
+                  <div className="relative z-[1] flex items-start gap-2.5">
                     {isWin ? (
-                      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-leaf text-white">
+                      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-leaf text-white">
                         <Check className="size-3" strokeWidth={3} />
                       </span>
                     ) : null}
-                    <span className="min-w-0 flex-1 truncate font-display text-[15px] font-semibold text-foreground">
+                    <span className="min-w-0 flex-1 whitespace-normal break-words font-display text-[15px] font-semibold leading-snug text-foreground">
                       {opt}
                     </span>
                     {showBar && (
