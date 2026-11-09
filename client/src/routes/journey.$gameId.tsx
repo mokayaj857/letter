@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -10,13 +10,27 @@ import {
   Zap,
   X,
   ArrowRight,
+  Brain,
+  Grid3x3,
+  Search,
+  KeyRound,
+  Sparkles,
+  BookOpen,
+  Trophy,
+  RotateCcw,
+  Flame,
+  type LucideIcon,
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Screen } from "@/components/PhoneFrame";
 import { getGame, type Level } from "@/data/games";
 import { useUserStore } from "../lib/userStore";
 import { Coin } from "@/components/Coin";
+import { PlayHud } from "@/components/PlayHud";
+import { icons } from "@/assets/icons";
+import mascot from "@/assets/mascot.png";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   playPop,
   playSuccess,
@@ -32,7 +46,6 @@ import { CrosswordPlayer } from "@/components/games/CrosswordPlayer";
 import { QuizPlayer } from "@/components/games/QuizPlayer";
 import { CryptogramPlayer } from "@/components/games/CryptogramPlayer";
 import { SpecialActivitiesPlayer } from "@/components/games/SpecialActivitiesPlayer";
-import { LifeMoneyPath } from "@/components/LifeMoneyPath";
 
 export const Route = createFileRoute("/journey/$gameId")({
   loader: ({ params }) => {
@@ -66,16 +79,77 @@ export const Route = createFileRoute("/journey/$gameId")({
   component: Journey,
 });
 
-const kindLabel: Record<Level["kind"], string> = {
-  lesson: "Lesson",
-  quiz: "Quiz",
-  sim: "Simulation",
-  boss: "Boss battle",
-  wordsearch: "Word Search",
-  crossword: "Crossword",
-  cryptogram: "Cryptogram",
-  activity: "Special Activity",
+const KIND_META: Record<
+  Level["kind"],
+  { label: string; Icon: LucideIcon }
+> = {
+  wordsearch: { label: "Word Search", Icon: Search },
+  crossword: { label: "Crossword", Icon: Grid3x3 },
+  quiz: { label: "Quiz", Icon: Brain },
+  cryptogram: { label: "Cryptogram", Icon: KeyRound },
+  activity: { label: "Special Activity", Icon: Sparkles },
+  sim: { label: "Simulation", Icon: Sparkles },
+  lesson: { label: "Lesson", Icon: BookOpen },
+  boss: { label: "Boss Battle", Icon: Swords },
 };
+
+// Duolingo Unit Chapter Palettes (authentic solid Duolingo colors with tactile 3D bevels)
+const UNIT_THEMES = [
+  {
+    bg: "bg-[#58cc02]",
+    bottomBorderColor: "#46a302",
+    borderClass: "border-b-[8px] border-[#46a302]",
+    name: "leaf",
+    colorName: "emerald",
+  },
+  {
+    bg: "bg-[#1cb0f6]",
+    bottomBorderColor: "#1899d6",
+    borderClass: "border-b-[8px] border-[#1899d6]",
+    name: "sky",
+    colorName: "sky",
+  },
+  {
+    bg: "bg-[#ff9600]",
+    bottomBorderColor: "#e57800",
+    borderClass: "border-b-[8px] border-[#e57800]",
+    name: "sun",
+    colorName: "amber",
+  },
+  {
+    bg: "bg-[#ff4b4b]",
+    bottomBorderColor: "#ea2b2b",
+    borderClass: "border-b-[8px] border-[#ea2b2b]",
+    name: "berry",
+    colorName: "rose",
+  },
+  {
+    bg: "bg-[#ce82ff]",
+    bottomBorderColor: "#a545e0",
+    borderClass: "border-b-[8px] border-[#a545e0]",
+    name: "grape",
+    colorName: "purple",
+  },
+  {
+    bg: "bg-[#2ce1b4]",
+    bottomBorderColor: "#1eb892",
+    borderClass: "border-b-[8px] border-[#1eb892]",
+    name: "teal",
+    colorName: "teal",
+  },
+];
+
+// Duolingo serpentine S-curve horizontal offsets (in px)
+const S_CURVE_OFFSETS = [0, -48, -78, -48, 0, 48, 78, 48];
+
+// Mascot motivational cheers
+const BOXY_CHEERS = [
+  "You're on fire! Keep that streak alive! 🔥",
+  "Every level makes you smarter with money! 💡",
+  "One step closer to becoming a Money Master! 💰",
+  "Practice makes profit! Keep climbing! 🚀",
+  "You've got this! Boxy is cheering for you! 🌟",
+];
 
 const QUIZ_DATA = [
   {
@@ -107,6 +181,149 @@ const QUIZ_DATA = [
   },
 ];
 
+function getCanonicalTopic(title: string): string {
+  const t = title.toLowerCase();
+  if (t.includes("trade") || t.includes("saharan") || t.includes("maritime")) {
+    return "History of Trade in Africa";
+  }
+  if (t.includes("currencies of africa") || t.includes("afro note") || t.includes("notable cities")) {
+    return "Currencies of Africa";
+  }
+  if (t.includes("currencies of the americas") || t.includes("three-nation") || t.includes("ticket budget")) {
+    return "Currencies of the Americas";
+  }
+  if (t.includes("currencies of europe") || t.includes("daily cap")) {
+    return "Currencies of Europe";
+  }
+  if (t.includes("middle east")) {
+    return "Currencies of the Middle East";
+  }
+  if (t.includes("currencies of asia") || t.includes("currencies asia")) {
+    return "Currencies of Asia";
+  }
+  if (t.includes("export")) {
+    return "Kenyan & African Exports";
+  }
+  if (t.includes("import")) {
+    return "Kenyan Imports";
+  }
+  if (t.includes("foundations of money")) {
+    return "Foundations of Money";
+  }
+  if (t.includes("features of kenyan currency") || t.includes("tactile")) {
+    return "Features of Kenyan Currency";
+  }
+  if (t.includes("characteristics of m-pesa") || t.includes("m-pesa") || t.includes("mpesa")) {
+    return "Characteristics of M-Pesa";
+  }
+  if (t.includes("currencies of kenya")) {
+    return "Currencies of Kenya";
+  }
+  if (t.includes("budgeting") || t.includes("expense") || t.includes("fixed vs variable") || t.includes("school shopping") || t.includes("treasure hunt")) {
+    return "Budgeting Foundations";
+  }
+  if (t.includes("savvy shopper")) {
+    return "Savvy Shopper";
+  }
+  if (t.includes("video games") || t.includes("squad outing")) {
+    return "Wants & Squad Outings";
+  }
+  if (t.includes("consumer skills") || t.includes("bargaining")) {
+    return "Consumer Skills & Bargaining";
+  }
+  if (t.includes("saving") || t.includes("piggy")) {
+    return "Saving & Compounding";
+  }
+  if (t.includes("banking") || t.includes("deposit") || t.includes("teen account")) {
+    return "Banking & Accounts";
+  }
+  if (t.includes("types of income") || t.includes("earned vs passive")) {
+    return "Types of Income";
+  }
+  if (t.includes("careers") || t.includes("workplace") || t.includes("ethics") || t.includes("employab")) {
+    return "Careers & Workplace Skills";
+  }
+  if (t.includes("startup") || t.includes("branding") || t.includes("business") || t.includes("photographer")) {
+    return "Startup Foundations";
+  }
+  const parts = title.split(/[:·–]/);
+  if (parts.length > 1 && parts[0].trim().length >= 3) {
+    return parts[0].trim();
+  }
+  return title;
+}
+
+function getUnitDescription(title: string, gameTitle: string): string {
+  const t = title.toLowerCase();
+  if (t.includes("trade") || t.includes("history")) {
+    return "Explore ancient African trade routes, cowrie shells, caravans and barter systems.";
+  }
+  if (t.includes("currency") || t.includes("note") || t.includes("coin")) {
+    return "Learn how coins, banknotes, security features, and digital cash work.";
+  }
+  if (t.includes("mpesa") || t.includes("m-pesa") || t.includes("digital")) {
+    return "Master mobile money, PIN protection, spending limits, and safe transfers.";
+  }
+  if (t.includes("budget")) {
+    return "Apply the 50/30/20 rule to balance Needs, Wants, and Piggy Vault savings.";
+  }
+  if (t.includes("earn") || t.includes("career") || t.includes("job") || t.includes("work")) {
+    return "Discover active wages, side hustles, future careers, and creating value.";
+  }
+  if (t.includes("sav") || t.includes("bank") || t.includes("account")) {
+    return "Build emergency funds, unlock compounding power, and open teen accounts.";
+  }
+  if (t.includes("invest") || t.includes("stock") || t.includes("market")) {
+    return "Put your money to work in the capital markets, shares, and the NSE.";
+  }
+  if (t.includes("entrepreneur") || t.includes("business") || t.includes("founder")) {
+    return "Pitch ventures, calculate profit margins, and launch like a founder.";
+  }
+  return `Master key skills in ${gameTitle} and earn XP to unlock new paths.`;
+}
+
+function getUnitVocab(title: string): string[] {
+  const t = title.toLowerCase();
+  if (t.includes("trade") || t.includes("history")) {
+    return ["Cowrie Shells", "Barter Trade", "Caravans", "Commodity", "Merchant"];
+  }
+  if (t.includes("currency") || t.includes("note") || t.includes("coin")) {
+    return ["Banknote", "Tactile Bars", "Watermark", "M-Pesa", "Central Bank"];
+  }
+  if (t.includes("mpesa") || t.includes("m-pesa")) {
+    return ["PIN Security", "Paybill", "Till Number", "Spending Cap", "Reversal"];
+  }
+  if (t.includes("budget")) {
+    return ["50/30/20 Rule", "Needs vs Wants", "Fixed Costs", "Discretionary", "Emergency Fund"];
+  }
+  if (t.includes("earn") || t.includes("career")) {
+    return ["Active Income", "Salary", "Wages", "Commission", "Freelancing"];
+  }
+  if (t.includes("sav") || t.includes("bank")) {
+    return ["Piggy Vault", "Interest Rate", "Compounding", "Delayed Gratification", "Savings Account"];
+  }
+  if (t.includes("invest")) {
+    return ["Shares & Stocks", "Dividends", "NSE", "Capital Growth", "Portfolio"];
+  }
+  return ["Smart Money", "Budgeting", "Saving", "Growth", "Literacy"];
+}
+
+interface UnitSection {
+  id: string;
+  unitIndex: number;
+  title: string;
+  theme: (typeof UNIT_THEMES)[number];
+  levels: {
+    level: Level;
+    globalIndex: number;
+    indexInUnit: number;
+  }[];
+  completedCount: number;
+  isCompleted: boolean;
+  isCurrent: boolean;
+  isLocked: boolean;
+}
+
 function Journey() {
   const { game } = Route.useLoaderData();
   const { gameProgress, completeLevel, settings, user, auth } = useUserStore();
@@ -137,6 +354,13 @@ function Journey() {
   const total = game.levels.length;
   const pct = Math.min(100, Math.round((currentProgress / total) * 100));
 
+  // Duolingo interactive node modal & guidebook modal
+  const [selectedNodeIndex, setSelectedNodeIndex] = useState<number | null>(null);
+  const [selectedGuidebookUnit, setSelectedGuidebookUnit] = useState<UnitSection | null>(null);
+
+  // Boxy cheer index
+  const [boxySpeechIndex, setBoxySpeechIndex] = useState(0);
+
   // Interactive Level Player Modal State
   const [playingLevelIndex, setPlayingLevelIndex] = useState<number | null>(null);
   const [lessonSlide, setLessonSlide] = useState(0);
@@ -153,18 +377,70 @@ function Journey() {
   const isPaperQuiz =
     activeLevel?.gameData?.type === "quiz" && Boolean(activeLevel.gameData.questions[0]?.lessonBody);
 
+  // Group levels into authentic Duolingo Unit Chapters
+  const units: UnitSection[] = useMemo(() => {
+    const list: {
+      id: string;
+      unitIndex: number;
+      title: string;
+      theme: (typeof UNIT_THEMES)[number];
+      levels: { level: Level; globalIndex: number; indexInUnit: number }[];
+    }[] = [];
+    let current: (typeof list)[number] | null = null;
+
+    game.levels.forEach((level, idx) => {
+      const topic = getCanonicalTopic(level.title) || `Unit ${list.length + 1}`;
+      const shouldBreak =
+        !current ||
+        current.title !== topic ||
+        current.levels.length >= 6;
+
+      if (shouldBreak) {
+        if (current) list.push(current);
+        const unitIndex = list.length;
+        const theme = UNIT_THEMES[unitIndex % UNIT_THEMES.length];
+        current = {
+          id: `unit-${unitIndex}`,
+          unitIndex,
+          title: topic,
+          theme,
+          levels: [{ level, globalIndex: idx, indexInUnit: 0 }],
+        };
+      } else {
+        current.levels.push({
+          level,
+          globalIndex: idx,
+          indexInUnit: current.levels.length,
+        });
+      }
+    });
+
+    if (current) list.push(current);
+
+    // Compute unit state
+    return list.map((unit) => {
+      const completedCount = unit.levels.filter((l) => l.globalIndex < currentProgress).length;
+      const isCompleted = completedCount === unit.levels.length;
+      const isCurrent = unit.levels.some((l) => l.globalIndex === currentProgress);
+      const isLocked = unit.levels.every((l) => l.globalIndex > currentProgress);
+      return { ...unit, completedCount, isCompleted, isCurrent, isLocked };
+    });
+  }, [game.levels, currentProgress]);
+
   const startLevel = (idx: number) => {
     unlockAudio();
     const isUnlocked = idx <= currentProgress;
     if (!isUnlocked) {
       playError(settings.soundEnabled);
-      toast.info("Clear earlier levels to unlock this quest.");
+      toast.info("Complete previous levels to unlock this quest.");
       return;
     }
     if (settings.musicEnabled && settings.soundEnabled) {
       startBackgroundMusic(true, true, settings.musicVolume ?? 70);
     }
     playPop(settings.soundEnabled);
+    setSelectedNodeIndex(null);
+    setSelectedGuidebookUnit(null);
     setPlayingLevelIndex(idx);
     setLessonSlide(0);
     setQuizIndex(0);
@@ -186,6 +462,27 @@ function Journey() {
     setVictoryModal(true);
     playVictory(settings.soundEnabled);
     triggerConfetti();
+  };
+
+  const handleNodeClick = (globalIdx: number) => {
+    if (globalIdx > currentProgress) {
+      playError(settings.soundEnabled);
+      toast.info(`Complete level ${currentProgress + 1} to unlock this node!`);
+      return;
+    }
+    playPop(settings.soundEnabled);
+    setSelectedNodeIndex(globalIdx);
+  };
+
+  const handleMilestoneClick = (unit: UnitSection) => {
+    if (unit.isCompleted) {
+      playSuccess(settings.soundEnabled);
+      triggerConfetti();
+      toast.success(`Unit ${unit.unitIndex + 1} Cleared! You've mastered "${unit.title}"! 🎉`);
+    } else {
+      playPop(settings.soundEnabled);
+      toast.info(`Complete all levels in Unit ${unit.unitIndex + 1} to unlock this milestone chest! 🎁`);
+    }
   };
 
   const handleQuizAnswer = (idx: number, isCorrect: boolean) => {
@@ -213,130 +510,454 @@ function Journey() {
     }
   };
 
+  const selectedLevel = selectedNodeIndex !== null ? game.levels[selectedNodeIndex] : null;
+
   return (
     <>
-      {game.id === "life-money" ? (
-        <Screen>
-          <LifeMoneyPath levels={game.levels} progress={currentProgress} onPlay={startLevel} />
-        </Screen>
-      ) : (
       <Screen>
-        <header className="flex items-center gap-3">
-          <Link
-            to="/"
-            aria-label="Back to games"
-            className="grid size-11 place-items-center rounded-2xl border-2 border-border bg-card shadow-card active:scale-95"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Journey
-            </p>
-            <h1 className="truncate text-2xl font-bold text-primary-deep">
-              {game.title}
-            </h1>
+        {/* Sticky Duolingo-style Header HUD */}
+        <header className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 flex items-center justify-between gap-2 border-b-2 border-border/80 bg-background/95 px-4 py-3 backdrop-blur-md">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Link
+              to="/"
+              aria-label="Back to quests"
+              className="press grid size-10 place-items-center rounded-2xl border-2 border-border bg-card shadow-xs hover:bg-muted active:scale-95"
+              onClick={() => playPop(settings.soundEnabled)}
+            >
+              <ArrowLeft className="size-5 text-foreground" />
+            </Link>
+            <div className="min-w-0">
+              <h1 className="truncate font-display text-base sm:text-lg font-bold text-primary-deep leading-tight">
+                {game.title}
+              </h1>
+              <p className="text-[11px] font-bold text-muted-foreground">
+                Level {Math.min(currentProgress + 1, total)} of {total}
+              </p>
+            </div>
           </div>
-          <span className={`grid size-12 place-items-center rounded-2xl ${game.tint}`}>
-            <img
-              src={game.art}
-              alt=""
-              aria-hidden
-              width={384}
-              height={384}
-              className="size-9 animate-float-soft object-contain"
-            />
-          </span>
+          <PlayHud />
         </header>
 
-        <section className="mt-4 rounded-3xl border-2 border-border bg-card p-4 shadow-card">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-muted-foreground">
-              {currentProgress} of {total} levels cleared
-            </span>
-            <span className="text-primary-deep">{pct}%</span>
-          </div>
-          <div className="mt-2 h-3 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-leaf transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
-          </div>
-          <p className="mt-3 text-sm font-semibold text-muted-foreground">{game.blurb}</p>
-        </section>
-
-        {/* Level Path */}
-        <ol className="relative mt-6 dotty pl-2 pb-6">
-          {game.levels.map((level, i) => {
-            const isDone = i < currentProgress;
-            const isCurrent = i === currentProgress;
-            const isLocked = i > currentProgress;
-
-            return (
-              <li
-                key={level.title}
-                className="flex items-center gap-4 py-3 animate-pop-in"
-                style={{
-                  marginLeft: `${[0, 34, 60, 34][i % 4]}px`,
-                  animationDelay: `${i * 55}ms`,
-                }}
+        {/* Duolingo Winding Path Journey (Zero text description on path) */}
+        <div className="relative pb-24 dotty">
+          {units.map((unit, uIdx) => (
+            <div key={unit.id} className="relative mb-12">
+              {/* AUTHENTIC DUOLINGO UNIT SECTION BANNER */}
+              <div
+                className={cn(
+                  "relative mb-10 overflow-visible rounded-3xl p-5 sm:p-6 shadow-card text-white",
+                  unit.theme.bg,
+                  unit.theme.borderClass,
+                )}
               >
-                <button
-                  type="button"
-                  onClick={() => startLevel(i)}
-                  className={`press grid size-16 shrink-0 place-items-center rounded-3xl border-4 border-card shadow-card active:scale-95 transition-all ${
-                    isLocked
-                      ? "bg-muted text-muted-foreground cursor-not-allowed"
-                      : isDone
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-sunny text-sun-foreground animate-wiggle ring-4 ring-primary/40"
-                  }`}
-                >
-                  {isLocked ? (
-                    <Lock className="size-6" />
-                  ) : isDone ? (
-                    <Check className="size-7" strokeWidth={3} />
-                  ) : level.kind === "boss" ? (
-                    <Swords className="size-7" strokeWidth={2.6} />
-                  ) : (
-                    <Play className="size-7" strokeWidth={2.6} />
-                  )}
-                </button>
-                <div className="min-w-0" onClick={() => !isLocked && startLevel(i)}>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {kindLabel[level.kind]}
-                  </p>
-                  <p
-                    className={`font-display text-base font-bold leading-tight ${
-                      isLocked ? "text-muted-foreground" : "text-foreground"
-                    }`}
-                  >
-                    {level.title}
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs font-bold text-muted-foreground">
-                    {isDone ? (
-                      <>
-                        <Star className="size-3.5 text-sun fill-sun" /> Cleared · +{level.xp} XP
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="size-3.5 text-sky fill-sky" /> {level.xp} XP
-                      </>
-                    )}
-                  </p>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+                {/* Top Row: Unit Badge, Title & Guidebook Button */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="font-display text-xs sm:text-sm font-black uppercase tracking-widest text-white/80">
+                      UNIT {uIdx + 1}
+                    </span>
+                    <h2 className="mt-1 font-display text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-xs">
+                      {unit.title}
+                    </h2>
+                    <p className="mt-1.5 text-xs sm:text-sm font-semibold text-white/90 leading-snug max-w-md">
+                      {getUnitDescription(unit.title, game.title)}
+                    </p>
+                  </div>
 
-        <button
-          type="button"
-          onClick={() => startLevel(Math.min(currentProgress, total - 1))}
-          className="press mt-4 w-full rounded-3xl bg-primary py-4 font-display text-base font-bold text-primary-foreground shadow-pop active:translate-y-1 active:shadow-none"
-        >
-          {currentProgress === 0 ? "Start journey" : "Continue journey"}
-        </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playPop(settings.soundEnabled);
+                      setSelectedGuidebookUnit(unit);
+                    }}
+                    aria-label={`Open Guidebook for Unit ${uIdx + 1}`}
+                    className="press shrink-0 flex items-center gap-2 rounded-2xl border-2 border-white/40 bg-white/20 hover:bg-white/30 active:bg-white/40 text-white font-display text-xs sm:text-sm font-black uppercase tracking-wider px-3.5 sm:px-4 py-2 sm:py-2.5 border-b-4 border-black/25 shadow-xs active:translate-y-1 transition-all"
+                  >
+                    <BookOpen className="size-4.5 stroke-[2.5]" />
+                    <span>Guidebook</span>
+                  </button>
+                </div>
+
+                {/* Duolingo Progress Tracker Bar & "0 of 3 completed" */}
+                <div className="mt-4 pt-3.5 border-t border-white/20 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Trophy className="size-4 text-amber-300 drop-shadow-xs" />
+                      <span>{unit.completedCount} of {unit.levels.length} completed</span>
+                    </span>
+                    <span className="text-white/90 font-bold">
+                      {Math.round((unit.completedCount / unit.levels.length) * 100)}%
+                    </span>
+                  </div>
+                  <div className="h-3.5 sm:h-4 w-full overflow-hidden rounded-full bg-black/25 p-0.5 shadow-inner">
+                    <div
+                      className="h-full rounded-full bg-white transition-all duration-700 ease-out shadow-xs"
+                      style={{
+                        width: `${(unit.completedCount / unit.levels.length) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Authentic Duolingo Downward Pointer Triangle */}
+                <div
+                  className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-10 size-0 pointer-events-none"
+                  style={{
+                    borderLeft: "14px solid transparent",
+                    borderRight: "14px solid transparent",
+                    borderTop: `14px solid ${unit.theme.bottomBorderColor}`,
+                  }}
+                />
+              </div>
+
+              {/* Serpentine Node Trail (Duolingo S-Curve) */}
+              <div className="relative flex flex-col items-center">
+                {unit.levels.map((item, itemIdx) => {
+                  const globalIdx = item.globalIndex;
+                  const isDone = globalIdx < currentProgress;
+                  const isCurrent = globalIdx === currentProgress;
+                  const isLocked = globalIdx > currentProgress;
+
+                  const kindConfig = KIND_META[item.level.kind] || {
+                    label: "Quest",
+                    Icon: Star,
+                  };
+                  const KindIcon = kindConfig.Icon;
+
+                  // S-curve offset in pixels
+                  const xOffset = S_CURVE_OFFSETS[itemIdx % S_CURVE_OFFSETS.length];
+                  const nextItem = unit.levels[itemIdx + 1];
+
+                  return (
+                    <div
+                      key={item.level.title + globalIdx}
+                      className="relative my-3 flex flex-col items-center"
+                      style={{
+                        transform: `translateX(${xOffset}px)`,
+                      }}
+                    >
+                      {/* Stepper Dots to Next Node */}
+                      {nextItem && (
+                        <div className="pointer-events-none absolute top-full left-1/2 z-0 my-1 flex -translate-x-1/2 flex-col items-center gap-1.5">
+                          <span
+                            className={cn(
+                              "size-2.5 rounded-full transition-colors",
+                              isDone ? "bg-[#58cc02]" : "bg-border",
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "size-2 rounded-full transition-colors",
+                              isDone ? "bg-[#58cc02]" : "bg-border",
+                            )}
+                          />
+                        </div>
+                      )}
+
+                      {/* Duolingo Floating "START" Bubble above current active node */}
+                      {isCurrent && (
+                        <div className="absolute -top-12 z-20 flex flex-col items-center animate-bob pointer-events-none select-none">
+                          <div className="flex items-center gap-1.5 rounded-2xl bg-foreground px-4 py-1.5 font-display text-xs font-black uppercase tracking-wider text-card shadow-pop">
+                            <Play className="size-3.5 fill-card text-card" />
+                            <span>START</span>
+                          </div>
+                          <div className="size-0 border-x-[7px] border-x-transparent border-t-[7px] border-t-foreground -mt-0.5" />
+                        </div>
+                      )}
+
+                      {/* Duolingo 3D Tactile Stepping Stone Button (No text description) */}
+                      <button
+                        type="button"
+                        onClick={() => handleNodeClick(globalIdx)}
+                        aria-label={`Level ${globalIdx + 1}: ${item.level.title}`}
+                        className={cn(
+                          "press relative grid size-[76px] sm:size-[82px] place-items-center rounded-full transition-transform active:translate-y-2 duration-150",
+                          isDone &&
+                            "bg-[#58cc02] text-white border-b-[8px] border-[#46a302] shadow-card hover:brightness-105 active:border-b-2",
+                          isCurrent &&
+                            "bg-[#ffc800] text-amber-950 border-b-[8px] border-[#e5a500] shadow-card hover:brightness-105 active:border-b-2 ring-[6px] ring-amber-400/40 ring-offset-4 ring-offset-background animate-wiggle",
+                          isLocked &&
+                            "bg-[#e5e5e5] text-[#afafaf] border-b-[8px] border-[#cfcfcf] shadow-xs active:border-b-2",
+                        )}
+                      >
+                        {isLocked ? (
+                          <Lock className="size-7 text-[#afafaf]" strokeWidth={2.5} />
+                        ) : isDone ? (
+                          <Check className="size-9 text-white drop-shadow-sm" strokeWidth={3.5} />
+                        ) : (
+                          <KindIcon className="size-8 fill-current text-current drop-shadow-sm" />
+                        )}
+
+                        {/* Completed Star Badge on Top Right */}
+                        {isDone && (
+                          <span className="absolute -top-1 -right-1 grid size-7 place-items-center rounded-full bg-[#ffc800] text-amber-950 border-2 border-white shadow-xs">
+                            <Star className="size-4 fill-current text-amber-950" />
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Milestone Chest Node at End of Unit */}
+                <div className="mt-8 mb-2 flex flex-col items-center">
+                  <button
+                    type="button"
+                    onClick={() => handleMilestoneClick(unit)}
+                    aria-label={`Milestone for Unit ${uIdx + 1}`}
+                    className={cn(
+                      "press group relative grid size-20 place-items-center rounded-4xl border-2 border-border bg-card shadow-card hover:scale-105 active:scale-95 transition-all",
+                      unit.isCompleted ? "ring-4 ring-amber-400/40 bg-sunny/20" : "bg-card",
+                    )}
+                  >
+                    <img
+                      src={unit.isCompleted ? icons.trophy : icons.badgeMedal}
+                      alt="Milestone"
+                      className={cn(
+                        "size-12 object-contain drop-shadow transition-transform",
+                        unit.isCompleted ? "animate-bob" : "grayscale opacity-40",
+                      )}
+                    />
+                    {unit.isCompleted && (
+                      <span className="absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white shadow-xs">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                  <span className="mt-2 font-display text-xs font-bold text-foreground">
+                    {unit.isCompleted ? "Unit Milestone Cleared! 🏆" : `Unit ${uIdx + 1} Chest 🔒`}
+                  </span>
+                  <span className="text-[10px] font-semibold text-muted-foreground">
+                    {unit.isCompleted
+                      ? "Tap to celebrate"
+                      : `${unit.levels.length - unit.completedCount} lessons left`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Boxy Mascot Cheering alongside the Active Unit (Like Duo Owl) */}
+              {unit.isCurrent && (
+                <div className="my-8 flex items-center gap-3.5 rounded-3xl border-2 border-primary/30 bg-primary-soft/50 p-3.5 shadow-card">
+                  <div
+                    onClick={() => {
+                      playPop(settings.soundEnabled);
+                      setBoxySpeechIndex((prev) => (prev + 1) % BOXY_CHEERS.length);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    className="cursor-pointer shrink-0 transition-transform hover:scale-105 active:scale-95"
+                    aria-label="Boxy Mascot"
+                  >
+                    <img
+                      src={mascot}
+                      alt="Boxy"
+                      className="size-16 animate-bob object-contain drop-shadow"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary-deep">
+                      <Sparkles className="size-3" />
+                      <span>Boxy Mascot</span>
+                    </div>
+                    <p className="mt-0.5 font-display text-sm font-bold text-foreground leading-snug">
+                      &ldquo;{BOXY_CHEERS[boxySpeechIndex]}&rdquo;
+                    </p>
+                    <span className="text-[10px] font-bold text-muted-foreground">Tap Boxy for cheers!</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Floating Duolingo "CONTINUE JOURNEY" Action Button */}
+        <div className="sticky bottom-4 z-20 mx-auto max-w-sm px-2">
+          <button
+            type="button"
+            onClick={() => startLevel(Math.min(currentProgress, total - 1))}
+            className="press flex w-full items-center justify-center gap-2 rounded-3xl bg-[#58cc02] hover:bg-[#46a302] border-b-4 border-[#3c8c02] py-3.5 font-display text-base font-black uppercase tracking-wider text-white shadow-pop active:translate-y-1 active:border-b-0 hover:brightness-105"
+          >
+            <Play className="size-5 fill-current" />
+            <span>
+              {currentProgress === 0
+                ? "Start Journey"
+                : `Continue Level ${Math.min(currentProgress + 1, total)}`}
+            </span>
+          </button>
+        </div>
       </Screen>
+
+      {/* DUOLINGO GUIDEBOOK MODAL (Opened from Unit Banner) */}
+      {selectedGuidebookUnit && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setSelectedGuidebookUnit(null)}
+        >
+          <div
+            className="relative w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in text-foreground"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                playPop(settings.soundEnabled);
+                setSelectedGuidebookUnit(null);
+              }}
+              className="absolute top-4 right-4 grid size-8 place-items-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+
+            {/* Guidebook Header */}
+            <div className="flex items-center gap-2.5">
+              <span className="grid size-12 place-items-center rounded-2xl bg-primary-soft text-primary-deep">
+                <BookOpen className="size-6 text-primary" />
+              </span>
+              <div>
+                <span className="inline-block rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                  Unit {selectedGuidebookUnit.unitIndex + 1} Guidebook
+                </span>
+                <h3 className="font-display text-lg sm:text-xl font-bold text-primary-deep leading-tight mt-0.5">
+                  {selectedGuidebookUnit.title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Overview Card */}
+            <div className="mt-4 rounded-2xl border-2 border-border bg-secondary/50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Chapter Objective
+              </p>
+              <p className="mt-1 font-display text-sm font-bold text-foreground">
+                {getUnitDescription(selectedGuidebookUnit.title, game.title)}
+              </p>
+            </div>
+
+            {/* Key Vocabulary Pills */}
+            <div className="mt-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                Key Terms & Concepts
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {getUnitVocab(selectedGuidebookUnit.title).map((term) => (
+                  <span
+                    key={term}
+                    className="rounded-xl border border-primary/20 bg-primary-soft/60 px-2.5 py-1 text-xs font-bold text-primary-deep"
+                  >
+                    {term}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Action CTA */}
+            <button
+              type="button"
+              onClick={() => {
+                const nextLevel =
+                  selectedGuidebookUnit.levels.find((l) => l.globalIndex >= currentProgress) ||
+                  selectedGuidebookUnit.levels[0];
+                startLevel(nextLevel.globalIndex);
+              }}
+              className="press mt-6 flex w-full items-center justify-center gap-2 rounded-3xl bg-[#58cc02] hover:bg-[#46a302] border-b-4 border-[#3c8c02] py-3.5 font-display text-base font-black uppercase tracking-wider text-white shadow-card hover:brightness-105 active:translate-y-1 active:border-b-0"
+            >
+              <Play className="size-4.5 fill-current stroke-[2.5]" />
+              <span>Jump into Unit Lessons</span>
+            </button>
+          </div>
+        </div>
       )}
 
+      {/* DUOLINGO NODE POPUP CARD (Appears only when tapping a stone) */}
+      {selectedNodeIndex !== null && selectedLevel && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setSelectedNodeIndex(null)}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in text-foreground"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => {
+                playPop(settings.soundEnabled);
+                setSelectedNodeIndex(null);
+              }}
+              className="absolute top-4 right-4 grid size-8 place-items-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+
+            {/* Level Icon & Header */}
+            <div className="flex items-center gap-3">
+              <span className="grid size-12 place-items-center rounded-2xl bg-primary-soft text-primary-deep">
+                {selectedNodeIndex < currentProgress ? (
+                  <Check className="size-6 text-primary" strokeWidth={3.5} />
+                ) : (
+                  <Play className="size-6 fill-primary text-primary" />
+                )}
+              </span>
+              <div>
+                <span className="inline-block rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                  {KIND_META[selectedLevel.kind]?.label || "Quest"} · Level {selectedNodeIndex + 1}
+                </span>
+                <h3 className="font-display text-base sm:text-lg font-bold text-primary-deep leading-tight mt-0.5">
+                  {selectedLevel.title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Reward Pill */}
+            <div className="mt-4 flex items-center justify-between rounded-2xl bg-secondary/80 p-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-primary-deep">
+                <Zap className="size-4 text-sky fill-sky" />
+                <span>+{selectedLevel.xp} XP</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-sun-foreground">
+                <Coin className="size-4" />
+                <span>+20 Coins</span>
+              </div>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-black",
+                  selectedNodeIndex < currentProgress
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    : "bg-amber-400/20 text-amber-700 dark:text-amber-400",
+                )}
+              >
+                {selectedNodeIndex < currentProgress ? "Cleared ✓" : "Up Next"}
+              </span>
+            </div>
+
+            {/* Big 3D Duolingo Action Button */}
+            <button
+              type="button"
+              onClick={() => startLevel(selectedNodeIndex)}
+              className="press mt-5 flex w-full items-center justify-center gap-2 rounded-3xl bg-[#58cc02] hover:bg-[#46a302] border-b-4 border-[#3c8c02] py-3.5 font-display text-base font-black uppercase tracking-wider text-white shadow-card hover:brightness-105 active:translate-y-1 active:border-b-0"
+            >
+              {selectedNodeIndex < currentProgress ? (
+                <>
+                  <RotateCcw className="size-4.5 stroke-[2.5]" />
+                  <span>Practice Level (+{selectedLevel.xp} XP)</span>
+                </>
+              ) : (
+                <>
+                  <Play className="size-4.5 fill-current stroke-[2.5]" />
+                  <span>Start Level (+{selectedLevel.xp} XP)</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PAPER QUIZ RUNNER */}
       {playingLevelIndex !== null && activeLevel && !victoryModal && isPaperQuiz && (
         <QuizPlayer
           puzzle={activeLevel.gameData as Extract<NonNullable<typeof activeLevel.gameData>, { type: "quiz" }>}
@@ -345,7 +966,7 @@ function Journey() {
         />
       )}
 
-      {/* Playable Level Runner Modal */}
+      {/* EMBEDDED LEVEL PLAYER MODAL */}
       {playingLevelIndex !== null && activeLevel && !victoryModal && !isPaperQuiz && (
         <div
           className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/60 backdrop-blur-md animate-in fade-in duration-200 ${
@@ -374,7 +995,7 @@ function Journey() {
               <X className="size-4" />
             </button>
 
-            {/* Render Embedded Game Component if available */}
+            {/* Word Search */}
             {activeLevel.gameData?.type === "wordsearch" && (
               <WordSearchPlayer
                 puzzle={activeLevel.gameData}
@@ -383,6 +1004,7 @@ function Journey() {
               />
             )}
 
+            {/* Crossword */}
             {activeLevel.gameData?.type === "crossword" && (
               <CrosswordPlayer
                 puzzle={activeLevel.gameData}
@@ -391,6 +1013,7 @@ function Journey() {
               />
             )}
 
+            {/* Quiz */}
             {activeLevel.gameData?.type === "quiz" && (
               <QuizPlayer
                 puzzle={activeLevel.gameData}
@@ -399,6 +1022,7 @@ function Journey() {
               />
             )}
 
+            {/* Cryptogram */}
             {activeLevel.gameData?.type === "cryptogram" && (
               <CryptogramPlayer
                 puzzle={activeLevel.gameData}
@@ -407,6 +1031,7 @@ function Journey() {
               />
             )}
 
+            {/* Activity */}
             {activeLevel.gameData?.type === "activity" && (
               <SpecialActivitiesPlayer
                 activity={activeLevel.gameData}
@@ -415,7 +1040,7 @@ function Journey() {
               />
             )}
 
-            {/* Fallback Legacy Mode if no rich gameData attached */}
+            {/* Fallback Legacy Lesson */}
             {!activeLevel.gameData && activeLevel.kind === "lesson" && (
               <div className="mt-4 space-y-4">
                 <div className="rounded-3xl border-2 border-border bg-muted/30 p-5 text-center">
@@ -470,6 +1095,7 @@ function Journey() {
               </div>
             )}
 
+            {/* Fallback Legacy Quiz / Boss */}
             {!activeLevel.gameData && (activeLevel.kind === "quiz" || activeLevel.kind === "boss") && (
               <div className="mt-4 space-y-3">
                 {activeLevel.kind === "boss" && (
@@ -541,6 +1167,7 @@ function Journey() {
               </div>
             )}
 
+            {/* Fallback Legacy Sim */}
             {!activeLevel.gameData && activeLevel.kind === "sim" && (
               <div className="mt-4 space-y-3">
                 <p className="text-xs font-semibold text-muted-foreground">
@@ -629,7 +1256,7 @@ function Journey() {
         </div>
       )}
 
-      {/* Victory Level Complete Modal */}
+      {/* VICTORY LEVEL COMPLETE MODAL */}
       {victoryModal && activeLevel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 sm:p-6 backdrop-blur-md animate-in fade-in duration-200">
           <div className="w-full max-w-sm sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-4xl border-2 border-border bg-card p-5 sm:p-6 shadow-float animate-pop-in overscroll-contain my-auto text-center">

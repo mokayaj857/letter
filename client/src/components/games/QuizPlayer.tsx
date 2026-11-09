@@ -112,10 +112,10 @@ const ClassicQuizPlayer: React.FC<Props> = ({ puzzle, onComplete }) => {
     }
 
     const finalScore = scoreRef.current;
-    const earnedXp = Math.round((finalScore / puzzle.questions.length) * 100) + 40;
-    const earnedCoins = finalScore >= Math.ceil(puzzle.questions.length * 0.7) ? 30 : 15;
-    triggerConfetti();
-    onComplete(earnedXp, earnedCoins);
+      const earnedXp = Math.round((finalScore / puzzle.questions.length) * 100) + 40;
+      const earnedCoins = finalScore >= Math.ceil(puzzle.questions.length * 0.7) ? 30 : 15;
+      triggerConfetti();
+      onComplete(earnedXp, earnedCoins);
   };
 
   if (showLesson) {
@@ -340,18 +340,18 @@ const ClassicQuizPlayer: React.FC<Props> = ({ puzzle, onComplete }) => {
               className={`w-full rounded-2xl border-2 p-3.5 text-left font-display text-xs transition-all active:scale-[0.98] sm:text-sm ${style}`}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid size-6 place-items-center rounded-lg bg-muted text-xs font-bold">
-                    {String.fromCharCode(65 + optIdx)}
-                  </span>
-                  <span className="leading-snug">{opt}</span>
-                </div>
-                {isAnswered && optIdx === currentQ.correctIndex && (
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-6 place-items-center rounded-lg bg-muted text-xs font-bold">
+                  {String.fromCharCode(65 + optIdx)}
+                </span>
+                <span className="leading-snug">{opt}</span>
+              </div>
+              {isAnswered && optIdx === currentQ.correctIndex && (
                   <Check className="ml-2 size-5 shrink-0 text-emerald-600" strokeWidth={3} />
-                )}
-                {isAnswered && optIdx === selectedOption && optIdx !== currentQ.correctIndex && (
+              )}
+              {isAnswered && optIdx === selectedOption && optIdx !== currentQ.correctIndex && (
                   <X className="ml-2 size-5 shrink-0 text-rose-600" strokeWidth={3} />
-                )}
+              )}
               </div>
             </button>
           );
