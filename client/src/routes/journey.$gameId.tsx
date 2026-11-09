@@ -428,8 +428,9 @@ function Journey() {
   }, [game.levels, currentProgress]);
 
   // Duolingo Dynamic Sticky Unit Header:
-  // Tracks scroll position so that only ONE single unit header exists at the top,
-  // dynamically updating its title, color, progress, and guidebook as you scroll!
+  // Tracks scroll position so that only ONE single permanent unit header exists at the top,
+  // dynamically updating its title, color, progress, and guidebook as you scroll to different units!
+  const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
   const unitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeUnitIndex, setActiveUnitIndex] = useState(0);
 
@@ -441,33 +442,53 @@ function Journey() {
     }
   }, [units]);
 
-  // Scroll listener detecting which unit is currently in view
+  // Robust Duolingo Scroll tracking:
+  // Evaluates every unit section on the path and checks if its top has passed beneath
+  // the permanent sticky header, instantly morphing the header in real-time as you scroll!
   useEffect(() => {
-    const handleScroll = () => {
-      // Offset beneath the sticky top HUD & unit banner
-      const threshold = 260;
+    const updateActiveUnit = () => {
+      if (!units.length) return;
+      const headerEl = stickyHeaderRef.current;
+      const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom + 40 : 240;
 
-      let candidateIndex = 0;
+      let foundIndex = 0;
       for (let i = 0; i < units.length; i++) {
         const el = unitRefs.current[i];
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= threshold) {
-            candidateIndex = i;
-          } else {
-            break;
+          if (rect.top <= headerBottom) {
+            foundIndex = i;
           }
         }
       }
-      setActiveUnitIndex(candidateIndex);
+      setActiveUnitIndex((prev) => (prev !== foundIndex ? foundIndex : prev));
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", updateActiveUnit, { passive: true });
+    window.addEventListener("resize", updateActiveUnit, { passive: true });
+    updateActiveUnit();
+    const rafId = requestAnimationFrame(updateActiveUnit);
+    const timer = setTimeout(updateActiveUnit, 100);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveUnit);
+      window.removeEventListener("resize", updateActiveUnit);
+      cancelAnimationFrame(rafId);
+      clearTimeout(timer);
+    };
   }, [units.length]);
 
   const activeUnit = units[activeUnitIndex] || units[0];
+
+  const scrollToUnit = (idx: number) => {
+    const el = unitRefs.current[idx];
+    if (el) {
+      const headerEl = stickyHeaderRef.current;
+      const offset = headerEl ? headerEl.offsetHeight + 40 : 260;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
 
   const startLevel = (idx: number) => {
     unlockAudio();
@@ -558,7 +579,10 @@ function Journey() {
     <>
       <Screen>
         {/* STICKY DUOLINGO TOP STACK: Top Navigation HUD + THE ONLY DYNAMIC UNIT HEADER */}
-        <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-3 bg-background/95 backdrop-blur-md pb-2 border-b border-border/70 shadow-xs">
+        <div
+          ref={stickyHeaderRef}
+          className="sticky top-0 z-30 -mx-4 -mt-4 mb-3 bg-background/95 backdrop-blur-md pb-2 border-b border-border/70 shadow-xs"
+        >
           {/* Top HUD */}
           <header className="flex items-center justify-between gap-2 px-4 py-2">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -674,18 +698,23 @@ function Journey() {
             >
               {/* Unit Checkpoint Divider on the path */}
               {uIdx > 0 && (
-                <div className="my-8 flex items-center justify-center gap-3 select-none">
-                  <div className="h-0.5 flex-1 bg-border/60" />
-                  <div className="flex items-center gap-2 rounded-full border-2 border-border bg-card px-4 py-1.5 shadow-xs">
+                <div
+                  onClick={() => scrollToUnit(uIdx)}
+                  role="button"
+                  tabIndex={0}
+                  className="my-8 flex items-center justify-center gap-3 cursor-pointer select-none group"
+                >
+                  <div className="h-0.5 flex-1 bg-border/60 group-hover:bg-primary/40 transition-colors" />
+                  <div className="flex items-center gap-2 rounded-full border-2 border-border bg-card px-4 py-1.5 shadow-xs group-hover:border-primary/50 group-hover:scale-105 active:scale-95 transition-all">
                     <span
                       className="size-2.5 rounded-full"
                       style={{ backgroundColor: unit.theme.bottomBorderColor }}
                     />
-                    <span className="font-display text-xs font-black uppercase tracking-wider text-muted-foreground">
+                    <span className="font-display text-xs font-black uppercase tracking-wider text-muted-foreground group-hover:text-foreground">
                       Unit {uIdx + 1} Checkpoint · {unit.title}
                     </span>
                   </div>
-                  <div className="h-0.5 flex-1 bg-border/60" />
+                  <div className="h-0.5 flex-1 bg-border/60 group-hover:bg-primary/40 transition-colors" />
                 </div>
               )}
 
@@ -935,6 +964,9 @@ function Journey() {
             <button
               type="button"
               onClick={() => {
+                const targetIdx = selectedGuidebookUnit.unitIndex;
+                setSelectedGuidebookUnit(null);
+                scrollToUnit(targetIdx);
                 const nextLevel =
                   selectedGuidebookUnit.levels.find((l) => l.globalIndex >= currentProgress) ||
                   selectedGuidebookUnit.levels[0];
