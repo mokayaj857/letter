@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -427,6 +427,48 @@ function Journey() {
     });
   }, [game.levels, currentProgress]);
 
+  // Duolingo Dynamic Sticky Unit Header:
+  // Tracks scroll position so that only ONE single unit header exists at the top,
+  // dynamically updating its title, color, progress, and guidebook as you scroll!
+  const unitRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeUnitIndex, setActiveUnitIndex] = useState(0);
+
+  // Initialize active unit index based on current level progress
+  useEffect(() => {
+    const currentUnitIdx = units.findIndex((u) => u.isCurrent);
+    if (currentUnitIdx !== -1) {
+      setActiveUnitIndex(currentUnitIdx);
+    }
+  }, [units]);
+
+  // Scroll listener detecting which unit is currently in view
+  useEffect(() => {
+    const handleScroll = () => {
+      // Offset beneath the sticky top HUD & unit banner
+      const threshold = 260;
+
+      let candidateIndex = 0;
+      for (let i = 0; i < units.length; i++) {
+        const el = unitRefs.current[i];
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= threshold) {
+            candidateIndex = i;
+          } else {
+            break;
+          }
+        }
+      }
+      setActiveUnitIndex(candidateIndex);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [units.length]);
+
+  const activeUnit = units[activeUnitIndex] || units[0];
+
   const startLevel = (idx: number) => {
     unlockAudio();
     const isUnlocked = idx <= currentProgress;
@@ -515,52 +557,59 @@ function Journey() {
   return (
     <>
       <Screen>
-        {/* Sticky Duolingo-style Header HUD */}
-        <header className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 flex items-center justify-between gap-2 border-b-2 border-border/80 bg-background/95 px-4 py-3 backdrop-blur-md">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Link
-              to="/"
-              aria-label="Back to quests"
-              className="press grid size-10 place-items-center rounded-2xl border-2 border-border bg-card shadow-xs hover:bg-muted active:scale-95"
-              onClick={() => playPop(settings.soundEnabled)}
-            >
-              <ArrowLeft className="size-5 text-foreground" />
-            </Link>
-            <div className="min-w-0">
-              <h1 className="truncate font-display text-base sm:text-lg font-bold text-primary-deep leading-tight">
-                {game.title}
-              </h1>
-              <p className="text-[11px] font-bold text-muted-foreground">
-                Level {Math.min(currentProgress + 1, total)} of {total}
-              </p>
+        {/* STICKY DUOLINGO TOP STACK: Top Navigation HUD + THE ONLY DYNAMIC UNIT HEADER */}
+        <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-3 bg-background/95 backdrop-blur-md pb-2 border-b border-border/70 shadow-xs">
+          {/* Top HUD */}
+          <header className="flex items-center justify-between gap-2 px-4 py-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Link
+                to="/"
+                aria-label="Back to quests"
+                className="press grid size-9 sm:size-10 place-items-center rounded-2xl border-2 border-border bg-card shadow-xs hover:bg-muted active:scale-95"
+                onClick={() => playPop(settings.soundEnabled)}
+              >
+                <ArrowLeft className="size-5 text-foreground" />
+              </Link>
+              <div className="min-w-0">
+                <h1 className="truncate font-display text-base sm:text-lg font-bold text-primary-deep leading-tight">
+                  {game.title}
+                </h1>
+                <p className="text-[11px] font-bold text-muted-foreground">
+                  Level {Math.min(currentProgress + 1, total)} of {total}
+                </p>
+              </div>
             </div>
-          </div>
-          <PlayHud />
-        </header>
+            <PlayHud />
+          </header>
 
-        {/* Duolingo Winding Path Journey (Zero text description on path) */}
-        <div className="relative pb-24 dotty">
-          {units.map((unit, uIdx) => (
-            <div key={unit.id} className="relative mb-12">
-              {/* AUTHENTIC DUOLINGO UNIT SECTION BANNER */}
+          {/* THE SINGLE DYNAMIC DUOLINGO UNIT HEADER (Changes as you scroll to different units!) */}
+          {activeUnit && (
+            <div className="px-4 pt-1">
               <div
                 className={cn(
-                  "relative mb-10 overflow-visible rounded-3xl p-5 sm:p-6 shadow-card text-white",
-                  unit.theme.bg,
-                  unit.theme.borderClass,
+                  "relative overflow-visible rounded-3xl p-4 sm:p-5 text-white shadow-float transition-all duration-300 ease-out",
+                  activeUnit.theme.bg,
+                  activeUnit.theme.borderClass,
                 )}
               >
                 {/* Top Row: Unit Badge, Title & Guidebook Button */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <span className="font-display text-xs sm:text-sm font-black uppercase tracking-widest text-white/80">
-                      UNIT {uIdx + 1}
-                    </span>
-                    <h2 className="mt-1 font-display text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-xs">
-                      {unit.title}
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-xs sm:text-sm font-black uppercase tracking-widest text-white/80">
+                        UNIT {activeUnit.unitIndex + 1}
+                      </span>
+                      {activeUnit.isCompleted && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+                          <Check className="size-3 stroke-[3]" /> Mastered
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="mt-0.5 font-display text-xl sm:text-2xl font-black text-white leading-tight tracking-tight drop-shadow-xs truncate">
+                      {activeUnit.title}
                     </h2>
-                    <p className="mt-1.5 text-xs sm:text-sm font-semibold text-white/90 leading-snug max-w-md">
-                      {getUnitDescription(unit.title, game.title)}
+                    <p className="mt-1 text-xs sm:text-[13px] font-semibold text-white/90 leading-snug line-clamp-1 max-w-md">
+                      {getUnitDescription(activeUnit.title, game.title)}
                     </p>
                   </div>
 
@@ -568,32 +617,32 @@ function Journey() {
                     type="button"
                     onClick={() => {
                       playPop(settings.soundEnabled);
-                      setSelectedGuidebookUnit(unit);
+                      setSelectedGuidebookUnit(activeUnit);
                     }}
-                    aria-label={`Open Guidebook for Unit ${uIdx + 1}`}
-                    className="press shrink-0 flex items-center gap-2 rounded-2xl border-2 border-white/40 bg-white/20 hover:bg-white/30 active:bg-white/40 text-white font-display text-xs sm:text-sm font-black uppercase tracking-wider px-3.5 sm:px-4 py-2 sm:py-2.5 border-b-4 border-black/25 shadow-xs active:translate-y-1 transition-all"
+                    aria-label={`Open Guidebook for Unit ${activeUnit.unitIndex + 1}`}
+                    className="press shrink-0 flex items-center gap-2 rounded-2xl border-2 border-white/40 bg-white/20 hover:bg-white/30 active:bg-white/40 text-white font-display text-xs sm:text-sm font-black uppercase tracking-wider px-3 sm:px-4 py-2 border-b-4 border-black/25 shadow-xs active:translate-y-1 transition-all"
                   >
                     <BookOpen className="size-4.5 stroke-[2.5]" />
                     <span>Guidebook</span>
                   </button>
                 </div>
 
-                {/* Duolingo Progress Tracker Bar & "0 of 3 completed" */}
-                <div className="mt-4 pt-3.5 border-t border-white/20 flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                {/* Duolingo Progress Indicator: "0 of 3 completed" */}
+                <div className="mt-3 pt-2.5 border-t border-white/20 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-white">
                     <span className="flex items-center gap-1.5">
-                      <Trophy className="size-4 text-amber-300 drop-shadow-xs" />
-                      <span>{unit.completedCount} of {unit.levels.length} completed</span>
+                      <Trophy className="size-3.5 text-amber-300 drop-shadow-xs" />
+                      <span>{activeUnit.completedCount} of {activeUnit.levels.length} completed</span>
                     </span>
                     <span className="text-white/90 font-bold">
-                      {Math.round((unit.completedCount / unit.levels.length) * 100)}%
+                      {Math.round((activeUnit.completedCount / activeUnit.levels.length) * 100)}%
                     </span>
                   </div>
-                  <div className="h-3.5 sm:h-4 w-full overflow-hidden rounded-full bg-black/25 p-0.5 shadow-inner">
+                  <div className="h-3 w-full overflow-hidden rounded-full bg-black/25 p-0.5 shadow-inner">
                     <div
-                      className="h-full rounded-full bg-white transition-all duration-700 ease-out shadow-xs"
+                      className="h-full rounded-full bg-white transition-all duration-500 ease-out shadow-xs"
                       style={{
-                        width: `${(unit.completedCount / unit.levels.length) * 100}%`,
+                        width: `${(activeUnit.completedCount / activeUnit.levels.length) * 100}%`,
                       }}
                     />
                   </div>
@@ -601,14 +650,44 @@ function Journey() {
 
                 {/* Authentic Duolingo Downward Pointer Triangle */}
                 <div
-                  className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-10 size-0 pointer-events-none"
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 size-0 pointer-events-none transition-colors duration-300"
                   style={{
                     borderLeft: "14px solid transparent",
                     borderRight: "14px solid transparent",
-                    borderTop: `14px solid ${unit.theme.bottomBorderColor}`,
+                    borderTop: `14px solid ${activeUnit.theme.bottomBorderColor}`,
                   }}
                 />
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Continuous Duolingo Winding Path Journey (Zero text description on path) */}
+        <div className="relative pb-24 dotty pt-4">
+          {units.map((unit, uIdx) => (
+            <div
+              key={unit.id}
+              ref={(el) => {
+                unitRefs.current[uIdx] = el;
+              }}
+              className="relative mb-8"
+            >
+              {/* Unit Checkpoint Divider on the path */}
+              {uIdx > 0 && (
+                <div className="my-8 flex items-center justify-center gap-3 select-none">
+                  <div className="h-0.5 flex-1 bg-border/60" />
+                  <div className="flex items-center gap-2 rounded-full border-2 border-border bg-card px-4 py-1.5 shadow-xs">
+                    <span
+                      className="size-2.5 rounded-full"
+                      style={{ backgroundColor: unit.theme.bottomBorderColor }}
+                    />
+                    <span className="font-display text-xs font-black uppercase tracking-wider text-muted-foreground">
+                      Unit {uIdx + 1} Checkpoint · {unit.title}
+                    </span>
+                  </div>
+                  <div className="h-0.5 flex-1 bg-border/60" />
+                </div>
+              )}
 
               {/* Serpentine Node Trail (Duolingo S-Curve) */}
               <div className="relative flex flex-col items-center">
