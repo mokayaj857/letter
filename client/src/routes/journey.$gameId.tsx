@@ -183,6 +183,42 @@ const QUIZ_DATA = [
 
 function getCanonicalTopic(title: string): string {
   const t = title.toLowerCase();
+  if (t.includes("paying tax") || t.includes("tax")) {
+    return "Paying Tax";
+  }
+  if (t.includes("college") || t.includes("university") || t.includes("helb") || t.includes("hef")) {
+    return "Paying for College";
+  }
+  if (t.includes("insurance")) {
+    return "Insurance & Risk";
+  }
+  if (t.includes("retirement") || t.includes("pension") || t.includes("nssf")) {
+    return "Planning for Retirement";
+  }
+  if (t.includes("social security") || t.includes("inua jamii")) {
+    return "Social Security";
+  }
+  if (t.includes("predatory") || t.includes("lending") || t.includes("loan app")) {
+    return "Predatory Lending Apps";
+  }
+  if (t.includes("buying a car") || t.includes("car")) {
+    return "Buying a Car";
+  }
+  if (t.includes("buying a house") || t.includes("house") || t.includes("mortgage")) {
+    return "Buying a House";
+  }
+  if (t.includes("cryptocurrency") || t.includes("crypto") || t.includes("web3")) {
+    return "Cryptocurrency & Web3";
+  }
+  if (t.includes("gambling") || t.includes("betting")) {
+    return "Betting & Gambling";
+  }
+  if (t.includes("philanthropy") || t.includes("giving") || t.includes("chama")) {
+    return "Giving & Philanthropy";
+  }
+  if (t.includes("fair play") || t.includes("discrimination")) {
+    return "Financial Fair Play";
+  }
   if (t.includes("trade") || t.includes("saharan") || t.includes("maritime")) {
     return "History of Trade in Africa";
   }
@@ -255,6 +291,42 @@ function getCanonicalTopic(title: string): string {
 
 function getUnitDescription(title: string, gameTitle: string): string {
   const t = title.toLowerCase();
+  if (t.includes("tax")) {
+    return "Master KRA PINs, PAYE salary deductions, VAT rates, tax reliefs, and annual return deadlines.";
+  }
+  if (t.includes("college") || t.includes("university") || t.includes("helb")) {
+    return "Navigate KUCCPS placement, HEF scholarships, HELB loans, and campus upkeep budgeting.";
+  }
+  if (t.includes("insurance")) {
+    return "Shield yourself against life shocks with SHA/SHIF healthcare, motor, gadget, and agri policies.";
+  }
+  if (t.includes("retirement") || t.includes("pension")) {
+    return "Harness compound interest, NSSF employer matching, RBA pensions, and pre-retirement funds.";
+  }
+  if (t.includes("social security") || t.includes("safety net")) {
+    return "Explore Inua Jamii cash transfers, constitutional safety nets, and building a caring nation.";
+  }
+  if (t.includes("predatory") || t.includes("lending")) {
+    return "Spot high-APR debt traps, intrusive phone data scraping, debt-shaming, and guard your CRB record.";
+  }
+  if (t.includes("car")) {
+    return "Apply the 20/4/10 rule, calculate total cost of ownership, and avoid getting car-poor.";
+  }
+  if (t.includes("house") || t.includes("mortgage")) {
+    return "Compare renting vs. buying, understand mortgages, down payments, and property equity.";
+  }
+  if (t.includes("crypto")) {
+    return "Understand blockchain tech, cold storage, seed phrase security, and navigate market volatility.";
+  }
+  if (t.includes("gambling") || t.includes("betting")) {
+    return "Deconstruct the house edge, probability odds, avoid sunk cost fallacies, and spot addiction risks.";
+  }
+  if (t.includes("philanthropy") || t.includes("giving")) {
+    return "Harness communal harambees, merry-go-round chamas, and purposeful community uplift.";
+  }
+  if (t.includes("fair play") || t.includes("discrimination")) {
+    return "Identify predatory banking fees, redlining, and advocate for equitable financial access.";
+  }
   if (t.includes("trade") || t.includes("history")) {
     return "Explore ancient African trade routes, cowrie shells, caravans and barter systems.";
   }
@@ -284,6 +356,42 @@ function getUnitDescription(title: string, gameTitle: string): string {
 
 function getUnitVocab(title: string): string[] {
   const t = title.toLowerCase();
+  if (t.includes("tax")) {
+    return ["KRA PIN", "PAYE", "16% VAT", "Personal Relief", "iTax Nil Return"];
+  }
+  if (t.includes("college") || t.includes("university") || t.includes("helb")) {
+    return ["KUCCPS", "Universities Fund", "HELB Loan", "HEF Portal", "Upkeep Boom"];
+  }
+  if (t.includes("insurance")) {
+    return ["Premium", "Deductible", "Risk Pooling", "SHA / SHIF", "Exclusions"];
+  }
+  if (t.includes("retirement") || t.includes("pension")) {
+    return ["NSSF 6%", "Employer Match", "Compound Growth", "RBA Watchdog", "Annuity"];
+  }
+  if (t.includes("social security") || t.includes("safety net")) {
+    return ["Inua Jamii", "Cash Transfer", "Pesa za Wazee", "Single Registry", "Article 43"];
+  }
+  if (t.includes("predatory") || t.includes("lending")) {
+    return ["260% APR", "SMS Scraping", "7-Day Trap", "Debt-Shaming", "CRB Score"];
+  }
+  if (t.includes("car")) {
+    return ["20/4/10 Rule", "Depreciation", "TCO", "Certified Pre-Owned", "Insurance"];
+  }
+  if (t.includes("house") || t.includes("mortgage")) {
+    return ["Down Payment", "Mortgage", "Equity", "Closing Costs", "Rent vs Buy"];
+  }
+  if (t.includes("crypto")) {
+    return ["Blockchain", "Cold Wallet", "Seed Phrase", "Gas Fees", "Halving"];
+  }
+  if (t.includes("gambling") || t.includes("betting")) {
+    return ["House Edge", "Negative Expectation", "Sunk Cost", "Dopamine Loop", "Chasing Losses"];
+  }
+  if (t.includes("philanthropy") || t.includes("giving")) {
+    return ["Chama", "Harambee", "Effective Altruism", "Community Pool", "Social Impact"];
+  }
+  if (t.includes("fair play") || t.includes("discrimination")) {
+    return ["Financial Inclusion", "Redlining", "Equal Opportunity", "Unbanked", "Consumer Rights"];
+  }
   if (t.includes("trade") || t.includes("history")) {
     return ["Cowrie Shells", "Barter Trade", "Caravans", "Commodity", "Merchant"];
   }

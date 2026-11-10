@@ -183,6 +183,12 @@ import {
   gamblingQuiz,
   philanthropyQuiz,
   financialDiscriminationQuiz,
+  payingTaxQuiz,
+  payingForCollegeQuiz,
+  insuranceQuiz,
+  planningForRetirementQuiz,
+  socialSecurityQuiz,
+  predatoryLendingQuiz,
 } from "@/games/life-money";
 import { chunkQuiz } from "@/games/life-money/helpers";
 
@@ -373,6 +379,7 @@ export const games: Game[] = [
         lv("Career Navigation & Employability: Quiz", "quiz", 80, careersQuiz1),
         lv("Professional Ethics Quiz", "quiz", 150, careersQuiz2),
       ]),
+      ...chunkQuiz(payingForCollegeQuiz).map((p) => lv(p.title, "quiz", 50, p)),
     ]),
   },
   {
@@ -427,6 +434,7 @@ export const games: Game[] = [
         lv("Consumer Skills: Word Search 5", "wordsearch", 60, consumerSkillsWordSearch5),
         lv("Consumer Skills: Quiz", "quiz", 80, consumerSkillsQuiz),
       ]),
+      ...chunkQuiz(payingTaxQuiz).map((p) => lv(p.title, "quiz", 50, p)),
     ]),
   },
   {
@@ -466,6 +474,7 @@ export const games: Game[] = [
         lv("Credit & Loans: Word Search 2", "wordsearch", 60, creditLoansWordSearch2),
         lv("Credit & Loans: Quiz", "quiz", 80, creditLoansQuiz),
       ]),
+      ...chunkQuiz(predatoryLendingQuiz).map((p) => lv(p.title, "quiz", 50, p)),
     ]),
   },
   {
@@ -490,20 +499,27 @@ export const games: Game[] = [
         lv("Digital Economy & Cloud Tech: Quiz", "quiz", 80, digitalEconomyQuiz),
         lv("The Smart Money Pledge Ceremony", "activity", 100, smartMoneyPledgeActivity),
       ]),
+      ...chunkQuiz(planningForRetirementQuiz).map((p) => lv(p.title, "quiz", 50, p)),
     ]),
   },
   {
     id: "life-money",
     title: "Life Skills",
-    blurb: "Cars, houses, crypto, betting, giving, and fair access to money.",
+    blurb: "Real-world money skills: campus funding, taxes, cars, houses, insurance, debt defense, pensions & social safety nets.",
     art: gameArt["young-hustler"],
     tint: "bg-leaf",
     done: 0,
     levels: withProgress([
+      ...chunkQuiz(payingForCollegeQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(payingTaxQuiz).map((p) => lv(p.title, "quiz", 50, p)),
       ...chunkQuiz(buyingCarQuiz).map((p) => lv(p.title, "quiz", 50, p)),
       ...chunkQuiz(buyingHouseQuiz).map((p) => lv(p.title, "quiz", 50, p)),
-      ...chunkQuiz(cryptocurrencyQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(insuranceQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(predatoryLendingQuiz).map((p) => lv(p.title, "quiz", 50, p)),
       ...chunkQuiz(gamblingQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(cryptocurrencyQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(planningForRetirementQuiz).map((p) => lv(p.title, "quiz", 50, p)),
+      ...chunkQuiz(socialSecurityQuiz).map((p) => lv(p.title, "quiz", 50, p)),
       ...chunkQuiz(philanthropyQuiz).map((p) => lv(p.title, "quiz", 50, p)),
       ...chunkQuiz(financialDiscriminationQuiz).map((p) => lv(p.title, "quiz", 50, p)),
     ]),
