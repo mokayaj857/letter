@@ -182,8 +182,8 @@ export const predatoryLendingQuiz = lessonQuiz(
         "It is a public record that shows where and how you spend your money",
       ],
       1,
-      "Correct! Just like grades reflect academic performance, your CRB score reflects your borrowing reliability and debt compliance.",
-      "Think about long-term track records. A report card summarizes your academic performance over time, just as a credit score summarizes your borrowing habits.",
+      "Correct! Your CRB report is your financial resume. Banks, insurance registries and employers look at it to see if you can be trusted with responsibility and credit contracts.",
+      "Think about long-term track records. A report card summarizes your academic performance over time, just as a credit score summarizes your borrowing habits and debt compliance.",
     ),
   ],
 );
